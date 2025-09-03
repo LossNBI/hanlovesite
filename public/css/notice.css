@@ -1,0 +1,334 @@
+/* church/public/css/notice.css */
+
+/* 헤더 중복 스타일 제거 후, notice.html 고유 스타일만 남김 */
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  margin: 0;
+  background-color: #f0f2f5;
+}
+
+.main-container,
+.post-detail-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.post-detail-container {
+  display: none;
+}
+
+h1 {
+  color: #4a5568;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.post-list {
+  list-style: none;
+  padding: 0;
+}
+
+.post-item {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+}
+
+.post-item:hover {
+  background-color: #f7fafc;
+}
+
+.post-title {
+  font-weight: bold;
+  color: #2d3748;
+  font-size: 1.1rem;
+}
+
+.post-meta {
+  color: #a0aec0;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.no-posts {
+  text-align: center;
+  color: #a0aec0;
+  padding: 2rem;
+}
+
+.add-post-btn {
+  background-color: #4299e1;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-header {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.modal-body label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.modal-body input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Quill Editor 스타일링 */
+#editor-container {
+  margin-bottom: 1rem;
+}
+
+#editor {
+  height: 300px;
+}
+
+.modal-body .buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.modal-body .buttons button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal-body .save-btn {
+  background-color: #4299e1;
+  color: white;
+}
+
+.modal-body .cancel-btn {
+  background-color: #e2e8f0;
+  color: #2d3748;
+}
+
+.post-detail-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.post-detail-meta {
+  color: #a0aec0;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1rem;
+}
+
+.post-detail-content {
+  line-height: 1.6;
+  word-wrap: break-word;
+  min-height: 100px;
+}
+
+.post-detail-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.post-detail-actions button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.edit-post-btn {
+  background-color: #38b2ac;
+  color: white;
+}
+
+.delete-post-btn {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.back-to-list-btn {
+  background-color: #a0aec0;
+  color: #2d3748;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Comments */
+.comments-section {
+  margin-top: 2rem;
+  border-top: 2px solid #e2e8f0;
+  padding-top: 2rem;
+}
+
+.comments-section h3 {
+  margin-bottom: 1rem;
+}
+
+#commentForm {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+#commentForm textarea {
+  flex-grow: 1;
+  height: 40px;
+}
+
+#commentForm button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+  background-color: #4299e1;
+  color: white;
+  cursor: pointer;
+}
+
+.comment-list {
+  list-style: none;
+  padding: 0;
+}
+
+.comment-item {
+  background-color: #f7fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.comment-item .comment-meta {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-bottom: 0.5rem;
+}
+
+.comment-item .comment-actions {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.comment-item .comment-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #718096;
+}
+
+.comment-item .comment-text {
+  word-wrap: break-word;
+}
+
+.comment-item .comment-edit-form {
+  display: none;
+}
+
+/* Custom Alert & Confirm Modals */
+.custom-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.custom-modal-content {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  width: 80%;
+  max-width: 400px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.custom-modal-content p {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.custom-modal-content button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.custom-modal-content .confirm-btn {
+  background-color: #e53e3e;
+  color: white;
+  margin-left: 0.5rem;
+}
+
+.custom-modal-content .cancel-btn {
+  background-color: #e2e8f0;
+  color: #2d3748;
+}
