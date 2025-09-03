@@ -12,6 +12,11 @@
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <!-- Quill.js CSS 추가 -->
+    <link
+      href="https://cdn.quilljs.com/1.3.6/quill.snow.css"
+      rel="stylesheet"
+    />
     <style>
       body {
         font-family: "Noto Sans KR", sans-serif;
@@ -195,13 +200,20 @@
         font-weight: bold;
       }
 
-      .modal-body input,
-      .modal-body textarea {
+      .modal-body input {
         width: 100%;
         padding: 0.5rem;
         margin-bottom: 1rem;
         border: 1px solid #ccc;
         border-radius: 4px;
+      }
+
+      /* Quill Editor 스타일링 */
+      #editor-container {
+        margin-bottom: 1rem;
+      }
+      #editor {
+        height: 300px;
       }
 
       .modal-body .buttons {
@@ -340,6 +352,49 @@
       .comment-item .comment-edit-form {
         display: none;
       }
+
+      /* Custom Alert & Confirm Modals */
+      .custom-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+      }
+
+      .custom-modal-content {
+        background-color: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        text-align: center;
+        width: 80%;
+        max-width: 400px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      .custom-modal-content p {
+        margin-bottom: 1.5rem;
+        font-size: 1.1rem;
+      }
+      .custom-modal-content button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .custom-modal-content .confirm-btn {
+        background-color: #e53e3e;
+        color: white;
+        margin-left: 0.5rem;
+      }
+      .custom-modal-content .cancel-btn {
+        background-color: #e2e8f0;
+        color: #2d3748;
+      }
     </style>
   </head>
   <body>
@@ -410,13 +465,12 @@
           <input type="hidden" id="postIdInput" />
           <label for="postTitle">제목:</label>
           <input type="text" id="postTitle" name="title" required />
-          <label for="postContent">내용:</label>
-          <textarea
-            id="postContent"
-            name="content"
-            rows="10"
-            required
-          ></textarea>
+          <!-- 기존의 textarea 대신 Quill 에디터를 위한 div를 추가 -->
+          <div id="editor-container">
+            <div id="editor"></div>
+          </div>
+          <!-- 이미지 파일 업로드를 위한 숨겨진 input -->
+          <input type="file" id="imageInput" style="display: none" />
           <div class="buttons">
             <button type="submit" class="save-btn"></button>
             <button type="button" class="cancel-btn">취소</button>
@@ -467,6 +521,24 @@
       </div>
     </div>
 
+    <!-- 커스텀 alert/confirm 모달 -->
+    <div id="customAlertModal" class="custom-modal">
+      <div class="custom-modal-content">
+        <p id="alertMessage"></p>
+        <button id="alertOkBtn">확인</button>
+      </div>
+    </div>
+
+    <div id="customConfirmModal" class="custom-modal">
+      <div class="custom-modal-content">
+        <p id="confirmMessage"></p>
+        <button id="confirmCancelBtn" class="cancel-btn">취소</button>
+        <button id="confirmOkBtn" class="confirm-btn">확인</button>
+      </div>
+    </div>
+
+    <!-- Quill.js 스크립트 추가 -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script>
       const postListEl = document.getElementById("postList");
       const noPostsMessageEl = document.getElementById("noPostsMessage");
@@ -475,7 +547,6 @@
       const postModal = document.getElementById("postModal");
       const postForm = document.getElementById("postForm");
       const postTitleInput = document.getElementById("postTitle");
-      const postContentInput = document.getElementById("postContent");
       const postIdInput = document.getElementById("postIdInput");
       const modalHeader = postModal.querySelector(".modal-header");
       const saveBtn = postModal.querySelector(".save-btn");
@@ -488,6 +559,98 @@
       const commentList = document.getElementById("commentList");
       let currentPostId = null;
       let authStatus = {};
+
+      // 커스텀 alert/confirm 변수 및 함수
+      const customAlertModal = document.getElementById("customAlertModal");
+      const alertMessageEl = document.getElementById("alertMessage");
+      const alertOkBtn = document.getElementById("alertOkBtn");
+
+      const customConfirmModal = document.getElementById("customConfirmModal");
+      const confirmMessageEl = document.getElementById("confirmMessage");
+      const confirmOkBtn = document.getElementById("confirmOkBtn");
+      const confirmCancelBtn = document.getElementById("confirmCancelBtn");
+
+      const showAlert = (message) => {
+        return new Promise((resolve) => {
+          alertMessageEl.textContent = message;
+          customAlertModal.style.display = "flex";
+          alertOkBtn.onclick = () => {
+            customAlertModal.style.display = "none";
+            resolve(true);
+          };
+        });
+      };
+
+      const showConfirm = (message) => {
+        return new Promise((resolve) => {
+          confirmMessageEl.textContent = message;
+          customConfirmModal.style.display = "flex";
+          confirmOkBtn.onclick = () => {
+            customConfirmModal.style.display = "none";
+            resolve(true);
+          };
+          confirmCancelBtn.onclick = () => {
+            customConfirmModal.style.display = "none";
+            resolve(false);
+          };
+        });
+      };
+
+      // Quill.js 에디터 설정
+      const toolbarOptions = [
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        ["bold", "italic", "underline", "strike"],
+        ["blockquote", "code-block"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        [{ script: "sub" }, { script: "super" }],
+        [{ indent: "-1" }, { indent: "+1" }],
+        [{ direction: "rtl" }],
+        [{ size: ["small", false, "large", "huge"] }],
+        [{ color: [] }, { background: [] }],
+        [{ font: [] }],
+        [{ align: [] }],
+        ["link", "image", "video"],
+        ["clean"],
+      ];
+      const quill = new Quill("#editor", {
+        modules: {
+          toolbar: toolbarOptions,
+        },
+        theme: "snow",
+      });
+
+      const imageInput = document.getElementById("imageInput");
+
+      // Quill 이미지 버튼 클릭 이벤트 핸들러
+      quill.getModule("toolbar").addHandler("image", () => {
+        imageInput.click();
+      });
+
+      // 이미지 파일 업로드 처리
+      imageInput.addEventListener("change", async () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+          const result = await response.json();
+          if (response.ok) {
+            const range = quill.getSelection(true);
+            quill.insertEmbed(range.index, "image", result.url);
+          } else {
+            await showAlert("파일 업로드에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error("파일 업로드 오류:", error);
+          await showAlert("파일 업로드 중 오류가 발생했습니다.");
+        }
+      });
 
       // 템플릿: 시간 변환
       const timeAgo = (date) => {
@@ -517,11 +680,11 @@
           const li = document.createElement("li");
           li.className = "post-item";
           li.innerHTML = `
-                    <div class="post-title">${post.title}</div>
-                    <div class="post-meta">작성자: ${
-                      post.authorName
-                    } | ${timeAgo(post.createdAt)}</div>
-                `;
+            <div class="post-title">${post.title}</div>
+            <div class="post-meta">작성자: ${post.authorName} | ${timeAgo(
+            post.createdAt
+          )}</div>
+          `;
           li.addEventListener("click", () => showPostDetails(post._id));
           postListEl.appendChild(li);
         });
@@ -542,6 +705,7 @@
           ).textContent = `작성자: ${post.authorName} | ${timeAgo(
             post.createdAt
           )} | 댓글 ${post.comments.length}개`;
+          // 게시글 내용에 HTML을 바로 삽입하여 이미지와 꾸미기 정보가 보이도록 함
           postDetailsContent.querySelector(".post-detail-content").innerHTML =
             post.content;
 
@@ -556,7 +720,7 @@
           postDetailsModal.style.display = "flex";
         } catch (error) {
           console.error("게시글 상세 보기 오류:", error);
-          alert("게시글을 불러오는 중 오류가 발생했습니다.");
+          await showAlert("게시글을 불러오는 중 오류가 발생했습니다.");
         }
       };
 
@@ -577,25 +741,25 @@
           const isAdmin = authStatus.isLoggedIn && authStatus.role === "admin";
 
           li.innerHTML = `
-                    <div class="comment-meta">
-                        <strong>${
-                          comment.authorName
-                        }</strong> | <span>${timeAgo(comment.createdAt)}</span>
-                    </div>
-                    <div class="comment-text">${comment.text}</div>
-                    <div class="comment-actions">
-                        ${
-                          isAuthor || isAdmin
-                            ? `<button class="edit-comment-btn" data-id="${comment._id}">수정</button>`
-                            : ""
-                        }
-                        ${
-                          isAuthor || isAdmin
-                            ? `<button class="delete-comment-btn" data-id="${comment._id}">삭제</button>`
-                            : ""
-                        }
-                    </div>
-                `;
+            <div class="comment-meta">
+              <strong>${comment.authorName}</strong> | <span>${timeAgo(
+            comment.createdAt
+          )}</span>
+            </div>
+            <div class="comment-text">${comment.text}</div>
+            <div class="comment-actions">
+              ${
+                isAuthor || isAdmin
+                  ? `<button class="edit-comment-btn" data-id="${comment._id}">수정</button>`
+                  : ""
+              }
+              ${
+                isAuthor || isAdmin
+                  ? `<button class="delete-comment-btn" data-id="${comment._id}">삭제</button>`
+                  : ""
+              }
+            </div>
+          `;
           commentList.appendChild(li);
         });
       };
@@ -647,7 +811,7 @@
           renderPostList(posts);
         } catch (error) {
           console.error("게시글 목록 불러오기 오류:", error);
-          alert("게시글을 불러오는 중 오류가 발생했습니다.");
+          await showAlert("게시글을 불러오는 중 오류가 발생했습니다.");
         }
       };
 
@@ -659,17 +823,18 @@
           if (response.ok) {
             window.location.href = "/";
           } else {
-            alert(result.message);
+            await showAlert(result.message);
           }
         } catch (error) {
           console.error("로그아웃 오류:", error);
-          alert("로그아웃 중 오류가 발생했습니다.");
+          await showAlert("로그아웃 중 오류가 발생했습니다.");
         }
       };
 
       // 이벤트 리스너
       addPostBtn.addEventListener("click", () => {
         postForm.reset();
+        quill.root.innerHTML = ""; // Quill 에디터 초기화
         postIdInput.value = "";
         modalHeader.textContent = "새 게시글 작성";
         saveBtn.textContent = "작성";
@@ -680,7 +845,8 @@
         e.preventDefault();
         const postId = postIdInput.value;
         const title = postTitleInput.value;
-        const content = postContentInput.value;
+        // Quill 에디터에서 HTML 콘텐츠 가져오기
+        const content = quill.root.innerHTML;
         const method = postId ? "PUT" : "POST";
         const url = postId ? `/api/posts/${postId}` : "/api/posts";
 
@@ -692,15 +858,15 @@
           });
           const result = await response.json();
           if (response.ok) {
-            alert(result.message);
+            await showAlert(result.message);
             postModal.style.display = "none";
             fetchPosts();
           } else {
-            alert(result.message);
+            await showAlert(result.message);
           }
         } catch (error) {
           console.error("게시글 저장 오류:", error);
-          alert("게시글 저장 중 오류가 발생했습니다.");
+          await showAlert("게시글 저장 중 오류가 발생했습니다.");
         }
       });
 
@@ -711,7 +877,8 @@
           postDetailsModal.style.display = "none";
           postIdInput.value = post._id;
           postTitleInput.value = post.title;
-          postContentInput.value = post.content;
+          // Quill 에디터에 저장된 HTML 콘텐츠 로드
+          quill.root.innerHTML = post.content;
           modalHeader.textContent = "게시글 수정";
           saveBtn.textContent = "수정";
           postModal.style.display = "flex";
@@ -721,22 +888,25 @@
       });
 
       deletePostBtn.addEventListener("click", async () => {
-        if (confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
+        const confirmed = await showConfirm(
+          "정말로 이 게시글을 삭제하시겠습니까?"
+        );
+        if (confirmed) {
           try {
             const response = await fetch(`/api/posts/${currentPostId}`, {
               method: "DELETE",
             });
             const result = await response.json();
             if (response.ok) {
-              alert(result.message);
+              await showAlert(result.message);
               postDetailsModal.style.display = "none";
               fetchPosts();
             } else {
-              alert(result.message);
+              await showAlert(result.message);
             }
           } catch (error) {
             console.error("게시글 삭제 오류:", error);
-            alert("게시글 삭제 중 오류가 발생했습니다.");
+            await showAlert("게시글 삭제 중 오류가 발생했습니다.");
           }
         }
       });
@@ -755,42 +925,46 @@
             document.getElementById("commentText").value = "";
             showPostDetails(currentPostId);
           } else {
-            alert(result.message);
+            await showAlert(result.message);
           }
         } catch (error) {
           console.error("댓글 작성 오류:", error);
-          alert("댓글 작성 중 오류가 발생했습니다.");
+          await showAlert("댓글 작성 중 오류가 발생했습니다.");
         }
       });
 
       commentList.addEventListener("click", async (e) => {
         if (e.target.classList.contains("edit-comment-btn")) {
           const commentId = e.target.dataset.id;
-          const newText = prompt("수정할 댓글 내용을 입력하세요.");
-          if (newText === null || newText.trim() === "") return;
-          try {
-            const response = await fetch(
-              `/api/posts/${currentPostId}/comments/${commentId}`,
-              {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ newText }),
+          const newText = await showConfirm("수정할 댓글 내용을 입력하세요.");
+          if (newText) {
+            try {
+              const response = await fetch(
+                `/api/posts/${currentPostId}/comments/${commentId}`,
+                {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ newText }),
+                }
+              );
+              const result = await response.json();
+              if (response.ok) {
+                await showAlert(result.message);
+                showPostDetails(currentPostId);
+              } else {
+                await showAlert(result.message);
               }
-            );
-            const result = await response.json();
-            if (response.ok) {
-              alert(result.message);
-              showPostDetails(currentPostId);
-            } else {
-              alert(result.message);
+            } catch (error) {
+              console.error("댓글 수정 오류:", error);
+              await showAlert("댓글 수정 중 오류가 발생했습니다.");
             }
-          } catch (error) {
-            console.error("댓글 수정 오류:", error);
-            alert("댓글 수정 중 오류가 발생했습니다.");
           }
         }
         if (e.target.classList.contains("delete-comment-btn")) {
-          if (confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
+          const confirmed = await showConfirm(
+            "정말로 이 댓글을 삭제하시겠습니까?"
+          );
+          if (confirmed) {
             const commentId = e.target.dataset.id;
             try {
               const response = await fetch(
@@ -801,14 +975,14 @@
               );
               const result = await response.json();
               if (response.ok) {
-                alert(result.message);
+                await showAlert(result.message);
                 showPostDetails(currentPostId);
               } else {
-                alert(result.message);
+                await showAlert(result.message);
               }
             } catch (error) {
               console.error("댓글 삭제 오류:", error);
-              alert("댓글 삭제 중 오류가 발생했습니다.");
+              await showAlert("댓글 삭제 중 오류가 발생했습니다.");
             }
           }
         }

@@ -7,6 +7,7 @@ const { MongoClient } = require("mongodb");
 const { ObjectId } = require("mongodb");
 const bcrypt = require("bcryptjs");
 const session = require("express-session");
+const multer = require("multer");
 
 // Express 애플리케이션을 생성합니다.
 const app = express();
@@ -15,6 +16,19 @@ const port = 3000;
 // process.env.변수명 으로 환경 변수를 불러옵니다.
 const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    // 파일을 저장할 폴더를 지정합니다.
+    cb(null, "public/uploads/");
+  },
+  filename: function (req, file, cb) {
+    // 파일명을 원래 이름에 현재 시간을 더해 중복을 방지합니다.
+    const ext = path.extname(file.originalname);
+    cb(null, path.basename(file.originalname, ext) + "-" + Date.now() + ext);
+  },
+});
+const upload = multer({ storage: storage });
 
 // 데이터베이스 연결 함수
 async function connectDB() {
@@ -43,15 +57,6 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 로그인 상태 확인 미들웨어 (이 코드는 사용하지 않으므로 제거)
-// const requireAuth = (req, res, next) => {
-//   if (req.session.isLoggedIn) {
-//     next();
-//   } else {
-//     res.status(401).send("로그인이 필요합니다.");
-//   }
-// };
-
 // 로그인 여부와 관리자 권한을 동시에 확인하는 미들웨어
 const requireAdmin = (req, res, next) => {
   // 세션에 로그인 정보가 있고, 역할이 'admin'인지 확인
@@ -66,6 +71,7 @@ const requireAdmin = (req, res, next) => {
 // ===================================
 // HTML 파일들을 제공하는 라우트들
 // ===================================
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "main", "templates", "main", "home.html"));
 });
@@ -111,6 +117,7 @@ app.get("/mypage.html", (req, res) => {
 // ===================================
 // 사용자 관련 API
 // ===================================
+
 app.post("/register", async (req, res) => {
   const { name, username, password, email } = req.body;
   try {
@@ -727,5 +734,15 @@ app.delete("/api/posts/:postId/comments/:commentId", async (req, res) => {
   } catch (error) {
     console.error("댓글 삭제 오류:", error);
     res.status(500).json({ message: "댓글 삭제 중 오류가 발생했습니다." });
+  }
+});
+
+// 파일 업로드를 위한 API 엔드포인트
+app.post("/api/upload", upload.single("file"), (req, res) => {
+  // 업로드가 성공하면 파일의 URL을 프론트엔드로 보냅니다.
+  if (req.file) {
+    res.status(200).json({ url: `/uploads/${req.file.filename}` });
+  } else {
+    res.status(400).json({ message: "파일 업로드 실패" });
   }
 });
