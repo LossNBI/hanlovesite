@@ -375,6 +375,35 @@ app.listen(port, () => {
   console.log(`서버가 http://localhost:${port} 에서 실행 중입니다.`);
 });
 
+// 관리자 권한 확인 미들웨어
+const verifyAdmin = (req, res, next) => {
+  if (req.isAuthenticated() && req.user.role === "admin") {
+    next();
+  } else {
+    res.status(403).json({ message: "관리자 권한이 필요합니다." });
+  }
+};
+
+// 모든 사용자 목록을 가져오는 API
+app.get("/api/admin/users", verifyAdmin, async (req, res) => {
+  try {
+    const users = await User.find({}, "username name email role title");
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "서버 오류가 발생했습니다." });
+  }
+});
+
+// 칭호 목록을 가져오는 API
+app.get("/api/admin/titles", verifyAdmin, async (req, res) => {
+  try {
+    const titles = await Title.find({});
+    res.status(200).json(titles);
+  } catch (error) {
+    res.status(500).json({ message: "서버 오류가 발생했습니다." });
+  }
+});
+
 // 관리자 전용 칭호 관련 API
 app.get("/api/admin/titles", async (req, res) => {
   try {
@@ -388,6 +417,12 @@ app.get("/api/admin/titles", async (req, res) => {
       .status(500)
       .json({ message: "칭호 목록을 불러오는 중 오류가 발생했습니다." });
   }
+});
+
+app.get("/admin_content.html", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "main", "templates", "main", "admin_content.html")
+  );
 });
 
 app.get("/greetings.html", (req, res) => {
