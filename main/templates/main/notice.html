@@ -99,6 +99,16 @@
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       }
 
+      .post-detail-container {
+        display: none; /* 초기에는 숨김 */
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
       h1 {
         color: #4a5568;
         border-bottom: 2px solid #e2e8f0;
@@ -239,13 +249,13 @@
         color: #2d3748;
       }
 
-      #postDetailsModal .post-detail-title {
+      .post-detail-title {
         font-size: 1.5rem;
         font-weight: bold;
         margin-bottom: 0.5rem;
       }
 
-      #postDetailsModal .post-detail-meta {
+      .post-detail-meta {
         color: #a0aec0;
         font-size: 0.9rem;
         margin-bottom: 1rem;
@@ -253,33 +263,43 @@
         padding-bottom: 1rem;
       }
 
-      #postDetailsModal .post-detail-content {
+      .post-detail-content {
         line-height: 1.6;
         word-wrap: break-word;
         min-height: 100px;
       }
 
-      #postDetailsModal .post-detail-actions {
+      .post-detail-actions {
         margin-top: 1.5rem;
         display: flex;
         gap: 0.5rem;
       }
 
-      #postDetailsModal .post-detail-actions button {
+      .post-detail-actions button {
         padding: 0.5rem 1rem;
         border: none;
         border-radius: 5px;
         cursor: pointer;
       }
 
-      #postDetailsModal .edit-post-btn {
+      .edit-post-btn {
         background-color: #38b2ac;
         color: white;
       }
 
-      #postDetailsModal .delete-post-btn {
+      .delete-post-btn {
         background-color: #e53e3e;
         color: white;
+      }
+
+      .back-to-list-btn {
+        background-color: #a0aec0;
+        color: #2d3748;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
       }
 
       /* Comments */
@@ -441,7 +461,8 @@
       </div>
     </div>
 
-    <div class="main-container">
+    <!-- 게시글 목록 페이지 -->
+    <div id="postListContainer" class="main-container">
       <h1>
         <span>공지사항</span>
         <button id="addPostBtn" class="add-post-btn" style="display: none">
@@ -456,7 +477,47 @@
       </div>
     </div>
 
-    <!-- 글쓰기 / 수정 모달 -->
+    <!-- 게시글 상세 페이지 (새로 추가) -->
+    <div id="postDetailsContainer" class="post-detail-container">
+      <div id="postDetailsContent">
+        <h2 class="post-detail-title"></h2>
+        <div class="post-detail-meta"></div>
+        <div class="post-detail-content"></div>
+        <div class="post-detail-actions">
+          <button id="editPostBtn" class="edit-post-btn" style="display: none">
+            수정
+          </button>
+          <button
+            id="deletePostBtn"
+            class="delete-post-btn"
+            style="display: none"
+          >
+            삭제
+          </button>
+        </div>
+      </div>
+      <button id="backToListBtn" class="back-to-list-btn">
+        목록으로 돌아가기
+      </button>
+
+      <!-- 댓글 영역 -->
+      <div class="comments-section">
+        <h3>댓글</h3>
+        <div id="commentFormContainer">
+          <form id="commentForm">
+            <textarea
+              id="commentText"
+              placeholder="댓글을 입력하세요..."
+              required
+            ></textarea>
+            <button type="submit">작성</button>
+          </form>
+        </div>
+        <ul id="commentList" class="comment-list"></ul>
+      </div>
+    </div>
+
+    <!-- 글쓰기 / 수정 모달 (기존과 동일) -->
     <div id="postModal" class="modal">
       <div class="modal-content">
         <span class="close-btn">&times;</span>
@@ -465,11 +526,9 @@
           <input type="hidden" id="postIdInput" />
           <label for="postTitle">제목:</label>
           <input type="text" id="postTitle" name="title" required />
-          <!-- 기존의 textarea 대신 Quill 에디터를 위한 div를 추가 -->
           <div id="editor-container">
             <div id="editor"></div>
           </div>
-          <!-- 이미지 파일 업로드를 위한 숨겨진 input -->
           <input type="file" id="imageInput" style="display: none" />
           <div class="buttons">
             <button type="submit" class="save-btn"></button>
@@ -479,49 +538,7 @@
       </div>
     </div>
 
-    <!-- 게시글 상세 보기 모달 -->
-    <div id="postDetailsModal" class="modal">
-      <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <div id="postDetailsContent">
-          <h2 class="post-detail-title"></h2>
-          <div class="post-detail-meta"></div>
-          <div class="post-detail-content"></div>
-          <div class="post-detail-actions">
-            <button
-              id="editPostBtn"
-              class="edit-post-btn"
-              style="display: none"
-            >
-              수정
-            </button>
-            <button
-              id="deletePostBtn"
-              class="delete-post-btn"
-              style="display: none"
-            >
-              삭제
-            </button>
-          </div>
-        </div>
-        <div class="comments-section">
-          <h3>댓글</h3>
-          <div id="commentFormContainer">
-            <form id="commentForm">
-              <textarea
-                id="commentText"
-                placeholder="댓글을 입력하세요..."
-                required
-              ></textarea>
-              <button type="submit">작성</button>
-            </form>
-          </div>
-          <ul id="commentList" class="comment-list"></ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- 커스텀 alert/confirm 모달 -->
+    <!-- 커스텀 alert/confirm 모달 (기존과 동일) -->
     <div id="customAlertModal" class="custom-modal">
       <div class="custom-modal-content">
         <p id="alertMessage"></p>
@@ -540,9 +557,14 @@
     <!-- Quill.js 스크립트 추가 -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script>
+      const postListContainer = document.getElementById("postListContainer");
+      const postDetailsContainer = document.getElementById(
+        "postDetailsContainer"
+      );
       const postListEl = document.getElementById("postList");
       const noPostsMessageEl = document.getElementById("noPostsMessage");
       const addPostBtn = document.getElementById("addPostBtn");
+      const backToListBtn = document.getElementById("backToListBtn");
 
       const postModal = document.getElementById("postModal");
       const postForm = document.getElementById("postForm");
@@ -551,7 +573,6 @@
       const modalHeader = postModal.querySelector(".modal-header");
       const saveBtn = postModal.querySelector(".save-btn");
 
-      const postDetailsModal = document.getElementById("postDetailsModal");
       const postDetailsContent = document.getElementById("postDetailsContent");
       const editPostBtn = document.getElementById("editPostBtn");
       const deletePostBtn = document.getElementById("deletePostBtn");
@@ -560,7 +581,6 @@
       let currentPostId = null;
       let authStatus = {};
 
-      // 커스텀 alert/confirm 변수 및 함수
       const customAlertModal = document.getElementById("customAlertModal");
       const alertMessageEl = document.getElementById("alertMessage");
       const alertOkBtn = document.getElementById("alertOkBtn");
@@ -621,12 +641,10 @@
 
       const imageInput = document.getElementById("imageInput");
 
-      // Quill 이미지 버튼 클릭 이벤트 핸들러
       quill.getModule("toolbar").addHandler("image", () => {
         imageInput.click();
       });
 
-      // 이미지 파일 업로드 처리
       imageInput.addEventListener("change", async () => {
         const file = imageInput.files[0];
         if (!file) return;
@@ -679,25 +697,36 @@
         posts.forEach((post) => {
           const li = document.createElement("li");
           li.className = "post-item";
+          // 클릭 시 URL 해시 변경
+          li.onclick = () => {
+            window.location.hash = `#${post._id}`;
+          };
           li.innerHTML = `
             <div class="post-title">${post.title}</div>
             <div class="post-meta">작성자: ${post.authorName} | ${timeAgo(
             post.createdAt
           )}</div>
           `;
-          li.addEventListener("click", () => showPostDetails(post._id));
           postListEl.appendChild(li);
         });
       };
 
       // 템플릿: 게시글 상세 렌더링
       const showPostDetails = async (postId) => {
+        if (!postId) {
+          // ID가 없으면 목록 페이지로 전환
+          postListContainer.style.display = "block";
+          postDetailsContainer.style.display = "none";
+          return;
+        }
+
         currentPostId = postId;
         try {
           const response = await fetch(`/api/posts/${postId}`);
           if (!response.ok) throw new Error("게시글을 불러오지 못했습니다.");
           const post = await response.json();
 
+          // 게시글 내용 업데이트
           postDetailsContent.querySelector(".post-detail-title").textContent =
             post.title;
           postDetailsContent.querySelector(
@@ -705,22 +734,28 @@
           ).textContent = `작성자: ${post.authorName} | ${timeAgo(
             post.createdAt
           )} | 댓글 ${post.comments.length}개`;
-          // 게시글 내용에 HTML을 바로 삽입하여 이미지와 꾸미기 정보가 보이도록 함
           postDetailsContent.querySelector(".post-detail-content").innerHTML =
             post.content;
 
+          // 수정/삭제 버튼 가시성 설정
           const isAuthor =
             authStatus.isLoggedIn && authStatus.name === post.authorName;
           const isAdmin = authStatus.isLoggedIn && authStatus.role === "admin";
-          editPostBtn.style.display = isAuthor || isAdmin ? "block" : "none";
-          deletePostBtn.style.display = isAuthor || isAdmin ? "block" : "none";
+          editPostBtn.style.display =
+            isAuthor || isAdmin ? "inline-block" : "none";
+          deletePostBtn.style.display =
+            isAuthor || isAdmin ? "inline-block" : "none";
 
           // 댓글 렌더링
           renderComments(post.comments);
-          postDetailsModal.style.display = "flex";
+
+          // 상세 페이지 표시, 목록 페이지 숨김
+          postListContainer.style.display = "none";
+          postDetailsContainer.style.display = "block";
         } catch (error) {
           console.error("게시글 상세 보기 오류:", error);
           await showAlert("게시글을 불러오는 중 오류가 발생했습니다.");
+          window.location.hash = ""; // 오류 발생 시 목록으로 돌아감
         }
       };
 
@@ -809,6 +844,7 @@
           const response = await fetch("/api/posts");
           const posts = await response.json();
           renderPostList(posts);
+          handleHashChange(); // 목록을 불러온 후 URL 해시를 확인하여 상세 페이지 표시
         } catch (error) {
           console.error("게시글 목록 불러오기 오류:", error);
           await showAlert("게시글을 불러오는 중 오류가 발생했습니다.");
@@ -831,21 +867,34 @@
         }
       };
 
+      // URL 해시 변경 핸들러 (새로 추가)
+      const handleHashChange = () => {
+        const postId = window.location.hash.slice(1); // '#' 제거
+        if (postId) {
+          showPostDetails(postId);
+        } else {
+          showPostDetails(null);
+        }
+      };
+
       // 이벤트 리스너
       addPostBtn.addEventListener("click", () => {
         postForm.reset();
-        quill.root.innerHTML = ""; // Quill 에디터 초기화
+        quill.root.innerHTML = "";
         postIdInput.value = "";
         modalHeader.textContent = "새 게시글 작성";
         saveBtn.textContent = "작성";
         postModal.style.display = "flex";
       });
 
+      backToListBtn.addEventListener("click", () => {
+        window.location.hash = ""; // URL 해시를 제거하여 목록으로 돌아가기
+      });
+
       postForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const postId = postIdInput.value;
         const title = postTitleInput.value;
-        // Quill 에디터에서 HTML 콘텐츠 가져오기
         const content = quill.root.innerHTML;
         const method = postId ? "PUT" : "POST";
         const url = postId ? `/api/posts/${postId}` : "/api/posts";
@@ -874,10 +923,9 @@
         try {
           const response = await fetch(`/api/posts/${currentPostId}`);
           const post = await response.json();
-          postDetailsModal.style.display = "none";
+          postDetailsContainer.style.display = "none";
           postIdInput.value = post._id;
           postTitleInput.value = post.title;
-          // Quill 에디터에 저장된 HTML 콘텐츠 로드
           quill.root.innerHTML = post.content;
           modalHeader.textContent = "게시글 수정";
           saveBtn.textContent = "수정";
@@ -899,8 +947,7 @@
             const result = await response.json();
             if (response.ok) {
               await showAlert(result.message);
-              postDetailsModal.style.display = "none";
-              fetchPosts();
+              window.location.hash = ""; // 삭제 후 목록으로 돌아가기
             } else {
               await showAlert(result.message);
             }
@@ -992,7 +1039,6 @@
       document.querySelectorAll(".close-btn, .cancel-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
           postModal.style.display = "none";
-          postDetailsModal.style.display = "none";
         });
       });
 
@@ -1000,16 +1046,16 @@
         if (e.target === postModal) {
           postModal.style.display = "none";
         }
-        if (e.target === postDetailsModal) {
-          postDetailsModal.style.display = "none";
-        }
       });
 
-      // 페이지 로드 시 초기화
+      // 페이지 로드 시 초기화 및 해시 변경 감지
       document.addEventListener("DOMContentLoaded", () => {
         checkAuthStatus();
         fetchPosts();
       });
+
+      // URL 해시가 변경될 때마다 페이지 상태를 업데이트
+      window.addEventListener("hashchange", handleHashChange);
     </script>
   </body>
 </html>
