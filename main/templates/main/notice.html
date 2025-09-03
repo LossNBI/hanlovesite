@@ -1,0 +1,841 @@
+<!-- church/main/templates/main/notice.html -->
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>교회소식 | 공지사항</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Noto Sans KR", sans-serif;
+        margin: 0;
+        background-color: #f0f2f5;
+      }
+
+      .header {
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo a {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+        text-decoration: none;
+      }
+
+      .nav-menu ul,
+      .auth-menu ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+      }
+
+      .nav-menu > ul > li {
+        position: relative;
+      }
+
+      .nav-menu > ul > li > a {
+        padding: 1rem;
+        text-decoration: none;
+        color: #555;
+        font-weight: bold;
+        display: block;
+      }
+
+      .nav-menu .submenu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: #fff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        min-width: 150px;
+      }
+
+      .nav-menu li:hover > .submenu {
+        display: block;
+      }
+
+      .nav-menu .submenu li a {
+        padding: 0.75rem 1rem;
+        display: block;
+        white-space: nowrap;
+      }
+
+      .auth-menu li a {
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+        color: #555;
+        background-color: #eee;
+        border-radius: 5px;
+        margin-left: 0.5rem;
+      }
+
+      .main-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #4a5568;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .post-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .post-item {
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        cursor: pointer;
+      }
+
+      .post-item:hover {
+        background-color: #f7fafc;
+      }
+
+      .post-title {
+        font-weight: bold;
+        color: #2d3748;
+        font-size: 1.1rem;
+      }
+
+      .post-meta {
+        color: #a0aec0;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+      }
+
+      .no-posts {
+        text-align: center;
+        color: #a0aec0;
+        padding: 2rem;
+      }
+
+      .add-post-btn {
+        background-color: #4299e1;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+      }
+
+      /* Modal */
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .modal-content {
+        background-color: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 700px;
+        max-height: 80vh;
+        overflow-y: auto;
+        position: relative;
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.5rem;
+        cursor: pointer;
+      }
+
+      .modal-header {
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .modal-body label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+      }
+
+      .modal-body input,
+      .modal-body textarea {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      .modal-body .buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+      }
+
+      .modal-body .buttons button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .modal-body .save-btn {
+        background-color: #4299e1;
+        color: white;
+      }
+
+      .modal-body .cancel-btn {
+        background-color: #e2e8f0;
+        color: #2d3748;
+      }
+
+      #postDetailsModal .post-detail-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+
+      #postDetailsModal .post-detail-meta {
+        color: #a0aec0;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 1rem;
+      }
+
+      #postDetailsModal .post-detail-content {
+        line-height: 1.6;
+        word-wrap: break-word;
+        min-height: 100px;
+      }
+
+      #postDetailsModal .post-detail-actions {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      #postDetailsModal .post-detail-actions button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      #postDetailsModal .edit-post-btn {
+        background-color: #38b2ac;
+        color: white;
+      }
+
+      #postDetailsModal .delete-post-btn {
+        background-color: #e53e3e;
+        color: white;
+      }
+
+      /* Comments */
+      .comments-section {
+        margin-top: 2rem;
+        border-top: 2px solid #e2e8f0;
+        padding-top: 2rem;
+      }
+
+      .comments-section h3 {
+        margin-bottom: 1rem;
+      }
+
+      #commentForm {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      #commentForm textarea {
+        flex-grow: 1;
+        height: 40px;
+      }
+
+      #commentForm button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        background-color: #4299e1;
+        color: white;
+        cursor: pointer;
+      }
+
+      .comment-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .comment-item {
+        background-color: #f7fafc;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        position: relative;
+      }
+
+      .comment-item .comment-meta {
+        font-size: 0.8rem;
+        color: #718096;
+        margin-bottom: 0.5rem;
+      }
+
+      .comment-item .comment-actions {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+      }
+
+      .comment-item .comment-actions button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #718096;
+      }
+
+      .comment-item .comment-text {
+        word-wrap: break-word;
+      }
+
+      .comment-item .comment-edit-form {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="logo">
+        <a href="/">교회 웹사이트</a>
+      </div>
+      <nav class="nav-menu">
+        <ul>
+          <li>
+            <a href="#">교회소개</a>
+            <ul class="submenu">
+              <li><a href="/greetings.html">담임목사 인사말</a></li>
+              <li><a href="#">교회 비전</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="#">교회소식</a>
+            <ul class="submenu">
+              <li><a href="/notice.html">공지사항</a></li>
+              <li><a href="#">새로운 소식</a></li>
+            </ul>
+          </li>
+          <li><a href="#">부서별</a></li>
+          <li><a href="#">예배</a></li>
+        </ul>
+      </nav>
+      <div class="auth-menu">
+        <ul>
+          <li id="welcomeMessage" style="display: none"></li>
+          <li id="adminLink" style="display: none">
+            <a href="/admin.html">관리자 공간</a>
+          </li>
+          <li id="loginLink" style="display: none">
+            <a href="/login.html">로그인</a>
+          </li>
+          <li id="registerLink" style="display: none">
+            <a href="/register.html">회원가입</a>
+          </li>
+          <li id="logoutLink" style="display: none">
+            <a href="#" onclick="logout()">로그아웃</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="main-container">
+      <h1>
+        <span>공지사항</span>
+        <button id="addPostBtn" class="add-post-btn" style="display: none">
+          글쓰기
+        </button>
+      </h1>
+      <ul id="postList" class="post-list">
+        <!-- 게시글 목록이 여기에 동적으로 추가됩니다 -->
+      </ul>
+      <div id="noPostsMessage" class="no-posts" style="display: none">
+        아직 작성된 게시글이 없습니다.
+      </div>
+    </div>
+
+    <!-- 글쓰기 / 수정 모달 -->
+    <div id="postModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <div class="modal-header"></div>
+        <form id="postForm" class="modal-body">
+          <input type="hidden" id="postIdInput" />
+          <label for="postTitle">제목:</label>
+          <input type="text" id="postTitle" name="title" required />
+          <label for="postContent">내용:</label>
+          <textarea
+            id="postContent"
+            name="content"
+            rows="10"
+            required
+          ></textarea>
+          <div class="buttons">
+            <button type="submit" class="save-btn"></button>
+            <button type="button" class="cancel-btn">취소</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 게시글 상세 보기 모달 -->
+    <div id="postDetailsModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <div id="postDetailsContent">
+          <h2 class="post-detail-title"></h2>
+          <div class="post-detail-meta"></div>
+          <div class="post-detail-content"></div>
+          <div class="post-detail-actions">
+            <button
+              id="editPostBtn"
+              class="edit-post-btn"
+              style="display: none"
+            >
+              수정
+            </button>
+            <button
+              id="deletePostBtn"
+              class="delete-post-btn"
+              style="display: none"
+            >
+              삭제
+            </button>
+          </div>
+        </div>
+        <div class="comments-section">
+          <h3>댓글</h3>
+          <div id="commentFormContainer">
+            <form id="commentForm">
+              <textarea
+                id="commentText"
+                placeholder="댓글을 입력하세요..."
+                required
+              ></textarea>
+              <button type="submit">작성</button>
+            </form>
+          </div>
+          <ul id="commentList" class="comment-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const postListEl = document.getElementById("postList");
+      const noPostsMessageEl = document.getElementById("noPostsMessage");
+      const addPostBtn = document.getElementById("addPostBtn");
+
+      const postModal = document.getElementById("postModal");
+      const postForm = document.getElementById("postForm");
+      const postTitleInput = document.getElementById("postTitle");
+      const postContentInput = document.getElementById("postContent");
+      const postIdInput = document.getElementById("postIdInput");
+      const modalHeader = postModal.querySelector(".modal-header");
+      const saveBtn = postModal.querySelector(".save-btn");
+
+      const postDetailsModal = document.getElementById("postDetailsModal");
+      const postDetailsContent = document.getElementById("postDetailsContent");
+      const editPostBtn = document.getElementById("editPostBtn");
+      const deletePostBtn = document.getElementById("deletePostBtn");
+      const commentForm = document.getElementById("commentForm");
+      const commentList = document.getElementById("commentList");
+      let currentPostId = null;
+      let authStatus = {};
+
+      // 템플릿: 시간 변환
+      const timeAgo = (date) => {
+        const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + "년 전";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + "달 전";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + "일 전";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + "시간 전";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + "분 전";
+        return "방금 전";
+      };
+
+      // 템플릿: 게시글 목록 렌더링
+      const renderPostList = (posts) => {
+        postListEl.innerHTML = "";
+        if (posts.length === 0) {
+          noPostsMessageEl.style.display = "block";
+          return;
+        }
+        noPostsMessageEl.style.display = "none";
+        posts.forEach((post) => {
+          const li = document.createElement("li");
+          li.className = "post-item";
+          li.innerHTML = `
+                    <div class="post-title">${post.title}</div>
+                    <div class="post-meta">작성자: ${
+                      post.authorName
+                    } | ${timeAgo(post.createdAt)}</div>
+                `;
+          li.addEventListener("click", () => showPostDetails(post._id));
+          postListEl.appendChild(li);
+        });
+      };
+
+      // 템플릿: 게시글 상세 렌더링
+      const showPostDetails = async (postId) => {
+        currentPostId = postId;
+        try {
+          const response = await fetch(`/api/posts/${postId}`);
+          if (!response.ok) throw new Error("게시글을 불러오지 못했습니다.");
+          const post = await response.json();
+
+          postDetailsContent.querySelector(".post-detail-title").textContent =
+            post.title;
+          postDetailsContent.querySelector(
+            ".post-detail-meta"
+          ).textContent = `작성자: ${post.authorName} | ${timeAgo(
+            post.createdAt
+          )} | 댓글 ${post.comments.length}개`;
+          postDetailsContent.querySelector(".post-detail-content").innerHTML =
+            post.content;
+
+          const isAuthor =
+            authStatus.isLoggedIn && authStatus.name === post.authorName;
+          const isAdmin = authStatus.isLoggedIn && authStatus.role === "admin";
+          editPostBtn.style.display = isAuthor || isAdmin ? "block" : "none";
+          deletePostBtn.style.display = isAuthor || isAdmin ? "block" : "none";
+
+          // 댓글 렌더링
+          renderComments(post.comments);
+          postDetailsModal.style.display = "flex";
+        } catch (error) {
+          console.error("게시글 상세 보기 오류:", error);
+          alert("게시글을 불러오는 중 오류가 발생했습니다.");
+        }
+      };
+
+      // 템플릿: 댓글 렌더링
+      const renderComments = (comments) => {
+        commentList.innerHTML = "";
+        if (authStatus.isLoggedIn) {
+          commentForm.style.display = "flex";
+        } else {
+          commentForm.style.display = "none";
+        }
+
+        comments.forEach((comment) => {
+          const li = document.createElement("li");
+          li.className = "comment-item";
+          const isAuthor =
+            authStatus.isLoggedIn && authStatus.name === comment.authorName;
+          const isAdmin = authStatus.isLoggedIn && authStatus.role === "admin";
+
+          li.innerHTML = `
+                    <div class="comment-meta">
+                        <strong>${
+                          comment.authorName
+                        }</strong> | <span>${timeAgo(comment.createdAt)}</span>
+                    </div>
+                    <div class="comment-text">${comment.text}</div>
+                    <div class="comment-actions">
+                        ${
+                          isAuthor || isAdmin
+                            ? `<button class="edit-comment-btn" data-id="${comment._id}">수정</button>`
+                            : ""
+                        }
+                        ${
+                          isAuthor || isAdmin
+                            ? `<button class="delete-comment-btn" data-id="${comment._id}">삭제</button>`
+                            : ""
+                        }
+                    </div>
+                `;
+          commentList.appendChild(li);
+        });
+      };
+
+      // UI: 로그인 상태에 따라 UI 업데이트
+      const updateUI = (status) => {
+        authStatus = status;
+        document.getElementById("welcomeMessage").style.display = "none";
+        document.getElementById("logoutLink").style.display = "none";
+        document.getElementById("adminLink").style.display = "none";
+        document.getElementById("loginLink").style.display = "block";
+        document.getElementById("registerLink").style.display = "block";
+        addPostBtn.style.display = "none";
+
+        if (status.isLoggedIn) {
+          document.getElementById(
+            "welcomeMessage"
+          ).textContent = `환영합니다, ${status.name}님!`;
+          document.getElementById("welcomeMessage").style.display = "block";
+          document.getElementById("logoutLink").style.display = "block";
+          document.getElementById("loginLink").style.display = "none";
+          document.getElementById("registerLink").style.display = "none";
+
+          if (status.role === "admin") {
+            document.getElementById("adminLink").style.display = "block";
+            addPostBtn.style.display = "block";
+          }
+        }
+      };
+
+      // API: 로그인 상태 확인
+      const checkAuthStatus = async () => {
+        try {
+          const response = await fetch("/api/auth/status");
+          if (response.ok) {
+            const status = await response.json();
+            updateUI(status);
+          }
+        } catch (error) {
+          console.error("인증 상태 확인 오류:", error);
+        }
+      };
+
+      // API: 게시글 목록 가져오기
+      const fetchPosts = async () => {
+        try {
+          const response = await fetch("/api/posts");
+          const posts = await response.json();
+          renderPostList(posts);
+        } catch (error) {
+          console.error("게시글 목록 불러오기 오류:", error);
+          alert("게시글을 불러오는 중 오류가 발생했습니다.");
+        }
+      };
+
+      // API: 로그아웃
+      const logout = async () => {
+        try {
+          const response = await fetch("/logout", { method: "POST" });
+          const result = await response.json();
+          if (response.ok) {
+            window.location.href = "/";
+          } else {
+            alert(result.message);
+          }
+        } catch (error) {
+          console.error("로그아웃 오류:", error);
+          alert("로그아웃 중 오류가 발생했습니다.");
+        }
+      };
+
+      // 이벤트 리스너
+      addPostBtn.addEventListener("click", () => {
+        postForm.reset();
+        postIdInput.value = "";
+        modalHeader.textContent = "새 게시글 작성";
+        saveBtn.textContent = "작성";
+        postModal.style.display = "flex";
+      });
+
+      postForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const postId = postIdInput.value;
+        const title = postTitleInput.value;
+        const content = postContentInput.value;
+        const method = postId ? "PUT" : "POST";
+        const url = postId ? `/api/posts/${postId}` : "/api/posts";
+
+        try {
+          const response = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, content }),
+          });
+          const result = await response.json();
+          if (response.ok) {
+            alert(result.message);
+            postModal.style.display = "none";
+            fetchPosts();
+          } else {
+            alert(result.message);
+          }
+        } catch (error) {
+          console.error("게시글 저장 오류:", error);
+          alert("게시글 저장 중 오류가 발생했습니다.");
+        }
+      });
+
+      editPostBtn.addEventListener("click", async () => {
+        try {
+          const response = await fetch(`/api/posts/${currentPostId}`);
+          const post = await response.json();
+          postDetailsModal.style.display = "none";
+          postIdInput.value = post._id;
+          postTitleInput.value = post.title;
+          postContentInput.value = post.content;
+          modalHeader.textContent = "게시글 수정";
+          saveBtn.textContent = "수정";
+          postModal.style.display = "flex";
+        } catch (error) {
+          console.error("게시글 수정 준비 오류:", error);
+        }
+      });
+
+      deletePostBtn.addEventListener("click", async () => {
+        if (confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
+          try {
+            const response = await fetch(`/api/posts/${currentPostId}`, {
+              method: "DELETE",
+            });
+            const result = await response.json();
+            if (response.ok) {
+              alert(result.message);
+              postDetailsModal.style.display = "none";
+              fetchPosts();
+            } else {
+              alert(result.message);
+            }
+          } catch (error) {
+            console.error("게시글 삭제 오류:", error);
+            alert("게시글 삭제 중 오류가 발생했습니다.");
+          }
+        }
+      });
+
+      commentForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const commentText = document.getElementById("commentText").value;
+        try {
+          const response = await fetch(`/api/posts/${currentPostId}/comments`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ commentText }),
+          });
+          const result = await response.json();
+          if (response.ok) {
+            document.getElementById("commentText").value = "";
+            showPostDetails(currentPostId);
+          } else {
+            alert(result.message);
+          }
+        } catch (error) {
+          console.error("댓글 작성 오류:", error);
+          alert("댓글 작성 중 오류가 발생했습니다.");
+        }
+      });
+
+      commentList.addEventListener("click", async (e) => {
+        if (e.target.classList.contains("edit-comment-btn")) {
+          const commentId = e.target.dataset.id;
+          const newText = prompt("수정할 댓글 내용을 입력하세요.");
+          if (newText === null || newText.trim() === "") return;
+          try {
+            const response = await fetch(
+              `/api/posts/${currentPostId}/comments/${commentId}`,
+              {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ newText }),
+              }
+            );
+            const result = await response.json();
+            if (response.ok) {
+              alert(result.message);
+              showPostDetails(currentPostId);
+            } else {
+              alert(result.message);
+            }
+          } catch (error) {
+            console.error("댓글 수정 오류:", error);
+            alert("댓글 수정 중 오류가 발생했습니다.");
+          }
+        }
+        if (e.target.classList.contains("delete-comment-btn")) {
+          if (confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
+            const commentId = e.target.dataset.id;
+            try {
+              const response = await fetch(
+                `/api/posts/${currentPostId}/comments/${commentId}`,
+                {
+                  method: "DELETE",
+                }
+              );
+              const result = await response.json();
+              if (response.ok) {
+                alert(result.message);
+                showPostDetails(currentPostId);
+              } else {
+                alert(result.message);
+              }
+            } catch (error) {
+              console.error("댓글 삭제 오류:", error);
+              alert("댓글 삭제 중 오류가 발생했습니다.");
+            }
+          }
+        }
+      });
+
+      // 모달 닫기
+      document.querySelectorAll(".close-btn, .cancel-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          postModal.style.display = "none";
+          postDetailsModal.style.display = "none";
+        });
+      });
+
+      window.addEventListener("click", (e) => {
+        if (e.target === postModal) {
+          postModal.style.display = "none";
+        }
+        if (e.target === postDetailsModal) {
+          postDetailsModal.style.display = "none";
+        }
+      });
+
+      // 페이지 로드 시 초기화
+      document.addEventListener("DOMContentLoaded", () => {
+        checkAuthStatus();
+        fetchPosts();
+      });
+    </script>
+  </body>
+</html>

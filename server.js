@@ -90,6 +90,13 @@ app.get("/greetings.html", (req, res) => {
   );
 });
 
+// 새로운 라우트: 공지사항 페이지 제공
+app.get("/notice.html", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "main", "templates", "main", "notice.html")
+  );
+});
+
 // 내 정보 페이지 접근 라우트 (로그인한 사용자만 접근 가능)
 app.get("/mypage.html", (req, res) => {
   if (req.session.user) {
@@ -494,4 +501,231 @@ app.get("/api/content/:pageName", async (req, res) => {
 // 서버를 시작하고 지정된 포트에서 대기합니다.
 app.listen(port, () => {
   console.log(`서버가 http://localhost:${port} 에서 실행 중입니다.`);
+});
+
+// ===================================
+// 게시글/댓글 API
+// ===================================
+
+// 모든 게시글 목록을 가져오는 API
+app.get("/api/posts", async (req, res) => {
+  try {
+    const db = client.db("church_db");
+    const collection = db.collection("posts");
+    const posts = await collection.find({}).sort({ createdAt: -1 }).toArray();
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("게시글 목록 조회 오류:", error);
+    res
+      .status(500)
+      .json({ message: "게시글을 불러오는 중 오류가 발생했습니다." });
+  }
+});
+
+// 특정 게시글 상세 내용을 가져오는 API
+app.get("/api/posts/:id", async (req, res) => {
+  try {
+    const db = client.db("church_db");
+    const collection = db.collection("posts");
+    const post = await collection.findOne({ _id: new ObjectId(req.params.id) });
+    if (!post) {
+      return res.status(404).json({ message: "게시글을 찾을 수 없습니다." });
+    }
+    res.status(200).json(post);
+  } catch (error) {
+    console.error("게시글 상세 조회 오류:", error);
+    res.status(500).json({ message: "서버 오류가 발생했습니다." });
+  }
+});
+
+// 새 게시글을 추가하는 API (로그인 필요)
+app.post("/api/posts", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ message: "로그인이 필요합니다." });
+  }
+  const { title, content } = req.body;
+  if (!title || !content) {
+    return res
+      .status(400)
+      .json({ message: "제목과 내용을 모두 입력해야 합니다." });
+  }
+  try {
+    const db = client.db("church_db");
+    const collection = db.collection("posts");
+    const newPost = {
+      title,
+      content,
+      authorId: new ObjectId(req.session.user.id),
+      authorName: req.session.user.name,
+      createdAt: new Date(),
+      comments: [],
+    };
+    await collection.insertOne(newPost);
+    res.status(201).json({ message: "게시글이 성공적으로 작성되었습니다." });
+  } catch (error) {
+    console.error("게시글 작성 오류:", error);
+    res.status(500).json({ message: "게시글 작성 중 오류가 발생했습니다." });
+  }
+});
+
+// 게시글을 수정하는 API (작성자 또는 관리자만 가능)
+app.put("/api/posts/:id", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ message: "로그인이 필요합니다." });
+  }
+  const { title, content } = req.body;
+  try {
+    const db = client.db("church_db");
+    const collection = db.collection("posts");
+    const post = await collection.findOne({ _id: new ObjectId(req.params.id) });
+    if (!post) {
+      return res.status(404).json({ message: "게시글을 찾을 수 없습니다." });
+    }
+    const isAuthor =
+      post.authorId.toString() === req.session.user.id.toString();
+    const isAdmin = req.session.user.role === "admin";
+    if (!isAuthor && !isAdmin) {
+      return res.status(403).json({ message: "게시글 수정 권한이 없습니다." });
+    }
+    await collection.updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: { title, content, updatedAt: new Date() } }
+    );
+    res.status(200).json({ message: "게시글이 성공적으로 수정되었습니다." });
+  } catch (error) {
+    console.error("게시글 수정 오류:", error);
+    res.status(500).json({ message: "게시글 수정 중 오류가 발생했습니다." });
+  }
+});
+
+// 게시글을 삭제하는 API (작성자 또는 관리자만 가능)
+app.delete("/api/posts/:id", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ message: "로그인이 필요합니다." });
+  }
+  try {
+    const db = client.db("church_db");
+    const collection = db.collection("posts");
+    const post = await collection.findOne({ _id: new ObjectId(req.params.id) });
+    if (!post) {
+      return res.status(404).json({ message: "게시글을 찾을 수 없습니다." });
+    }
+    const isAuthor =
+      post.authorId.toString() === req.session.user.id.toString();
+    const isAdmin = req.session.user.role === "admin";
+    if (!isAuthor && !isAdmin) {
+      return res.status(403).json({ message: "게시글 삭제 권한이 없습니다." });
+    }
+    await collection.deleteOne({ _id: new ObjectId(req.params.id) });
+    res.status(200).json({ message: "게시글이 성공적으로 삭제되었습니다." });
+  } catch (error) {
+    console.error("게시글 삭제 오류:", error);
+    res.status(500).json({ message: "게시글 삭제 중 오류가 발생했습니다." });
+  }
+});
+
+// 새 댓글을 추가하는 API (로그인 필요)
+app.post("/api/posts/:id/comments", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ message: "로그인이 필요합니다." });
+  }
+  const { commentText } = req.body;
+  if (!commentText) {
+    return res.status(400).json({ message: "댓글 내용을 입력해야 합니다." });
+  }
+  try {
+    const db = client.db("church_db");
+    const collection = db.collection("posts");
+    const newComment = {
+      _id: new ObjectId(),
+      text: commentText,
+      authorId: new ObjectId(req.session.user.id),
+      authorName: req.session.user.name,
+      createdAt: new Date(),
+    };
+    await collection.updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $push: { comments: newComment } }
+    );
+    res
+      .status(201)
+      .json({ message: "댓글이 성공적으로 작성되었습니다.", newComment });
+  } catch (error) {
+    console.error("댓글 작성 오류:", error);
+    res.status(500).json({ message: "댓글 작성 중 오류가 발생했습니다." });
+  }
+});
+
+// 댓글을 수정하는 API (작성자만 가능)
+app.put("/api/posts/:postId/comments/:commentId", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ message: "로그인이 필요합니다." });
+  }
+  const { newText } = req.body;
+  try {
+    const db = client.db("church_db");
+    const collection = db.collection("posts");
+    const post = await collection.findOne({
+      _id: new ObjectId(req.params.postId),
+    });
+    const comment = post.comments.find(
+      (c) => c._id.toString() === req.params.commentId
+    );
+    if (!comment) {
+      return res.status(404).json({ message: "댓글을 찾을 수 없습니다." });
+    }
+    const isAuthor =
+      comment.authorId.toString() === req.session.user.id.toString();
+    const isAdmin = req.session.user.role === "admin";
+    if (!isAuthor && !isAdmin) {
+      return res.status(403).json({ message: "댓글 수정 권한이 없습니다." });
+    }
+    await collection.updateOne(
+      { "comments._id": new ObjectId(req.params.commentId) },
+      {
+        $set: {
+          "comments.$.text": newText,
+          "comments.$.updatedAt": new Date(),
+        },
+      }
+    );
+    res.status(200).json({ message: "댓글이 성공적으로 수정되었습니다." });
+  } catch (error) {
+    console.error("댓글 수정 오류:", error);
+    res.status(500).json({ message: "댓글 수정 중 오류가 발생했습니다." });
+  }
+});
+
+// 댓글을 삭제하는 API (작성자 또는 관리자만 가능)
+app.delete("/api/posts/:postId/comments/:commentId", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ message: "로그인이 필요합니다." });
+  }
+  try {
+    const db = client.db("church_db");
+    const collection = db.collection("posts");
+    const post = await collection.findOne({
+      _id: new ObjectId(req.params.postId),
+    });
+    const comment = post.comments.find(
+      (c) => c._id.toString() === req.params.commentId
+    );
+    if (!comment) {
+      return res.status(404).json({ message: "댓글을 찾을 수 없습니다." });
+    }
+    const isAuthor =
+      comment.authorId.toString() === req.session.user.id.toString();
+    const isAdmin = req.session.user.role === "admin";
+    if (!isAuthor && !isAdmin) {
+      return res.status(403).json({ message: "댓글 삭제 권한이 없습니다." });
+    }
+    await collection.updateOne(
+      { _id: new ObjectId(req.params.postId) },
+      { $pull: { comments: { _id: new ObjectId(req.params.commentId) } } }
+    );
+    res.status(200).json({ message: "댓글이 성공적으로 삭제되었습니다." });
+  } catch (error) {
+    console.error("댓글 삭제 오류:", error);
+    res.status(500).json({ message: "댓글 삭제 중 오류가 발생했습니다." });
+  }
 });
