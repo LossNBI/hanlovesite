@@ -258,9 +258,9 @@ const checkAuthStatus = async () => {
     // 로그아웃 버튼 이벤트 리스너 추가
     const userMenu = document.querySelector(".user-menu");
     if (authStatus.isLoggedIn) {
-      let menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${authStatus.name}님</a><a href="#" id="logout-btn">로그아웃</a>`;
+      let menuHtml = `<a href="/mypage.html" class="welcome-message">환영합니다, ${authStatus.name}님</a><a href="#" id="logout-btn">로그아웃</a>`;
       if (authStatus.role === "admin") {
-        menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${authStatus.name}님</a><a href="/admin.html" class="admin-link">관리자 공간</a><a href="#" id="logout-btn">로그아웃</a>`;
+        menuHtml = `<a href="/mypage.html" class="welcome-message">환영합니다, ${authStatus.name}님</a><a href="/admin.html" class="admin-link">관리자 공간</a><a href="#" id="logout-btn">로그아웃</a>`;
       }
       userMenu.innerHTML = menuHtml;
       document
