@@ -250,7 +250,9 @@ const updateUI = (status) => {
 // API: 로그인 상태 확인
 const checkAuthStatus = async () => {
   try {
-    const response = await fetch("/api/auth/status");
+    const response = await fetch("/api/auth/status", {
+      credentials: "include",
+    });
     if (response.ok) {
       const status = await response.json();
       updateUI(status);
