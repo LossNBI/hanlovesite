@@ -12,9 +12,8 @@ const session = require("express-session"); // 로그인 유지 세션 관리 �
 const app = express();
 const port = 3000;
 
-// MongoDB 연결 URL
-const uri =
-  "mongodb+srv://son2717_db_user:2UqnrLw9K5CwXa9I@cluster0.tm9dlie.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+// process.env.변수명 으로 환경 변수를 불러옵니다.
+const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
 
 // 데이터베이스 연결 함수
@@ -32,7 +31,7 @@ connectDB(); // 서버 시작 시 데이터베이스 연결
 // 세션 미들웨어 설정
 app.use(
   session({
-    secret: "your-secret-key", // 세션 데이터를 암호화하기 위한 비밀 키 (아무 문자열이나 가능)
+    secret: process.env.SESSION_SECRET, // 환경 변수에서 비밀 키를 불러옴
     resave: false,
     saveUninitialized: true,
     cookie: { maxAge: 60 * 60 * 1000 }, // 세션 유지 시간 (1시간)
