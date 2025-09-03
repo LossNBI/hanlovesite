@@ -84,12 +84,6 @@ app.get("/admin.html", (req, res) => {
   res.sendFile(path.join(__dirname, "main", "templates", "main", "admin.html"));
 });
 
-app.get("/admin_content.html", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "main", "templates", "main", "admin_content.html")
-  );
-});
-
 app.get("/greetings.html", (req, res) => {
   res.sendFile(
     path.join(__dirname, "main", "templates", "main", "greetings.html")
