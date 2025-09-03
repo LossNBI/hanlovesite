@@ -1,5 +1,3 @@
-<!-- church/main/templates/main/notice.html -->
-
 <!DOCTYPE html>
 <html lang="ko">
   <head>
@@ -8,69 +6,10 @@
     <title>마이페이지 - 한사랑교회</title>
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/form.css" />
+    <link rel="stylesheet" href="/css/mypage.css" />
     <style>
-      .mypage-container {
-        max-width: 800px;
-        margin: 20px auto;
-        padding: 20px;
-        background-color: #f9f9f9;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-      .mypage-section {
-        margin-bottom: 20px;
-        padding: 20px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        background-color: #fff;
-      }
-      .mypage-section h2 {
-        border-bottom: 2px solid #eee;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
-      }
-      .user-info p {
-        margin: 10px 0;
-        font-size: 1.1em;
-      }
-      .user-info strong {
-        display: inline-block;
-        width: 80px;
-      }
-      .form-group {
-        margin-bottom: 15px;
-      }
-      .form-group label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-      }
-      .form-group input {
-        width: 100%;
-        padding: 8px;
-        box-sizing: border-box;
-      }
-      .btn-primary,
-      .btn-danger {
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        cursor: pointer;
-        border-radius: 5px;
-        margin-top: 10px;
-      }
-      .btn-primary {
-        background-color: #007bff;
-      }
-      .btn-danger {
-        background-color: #dc3545;
-      }
-      .btn-primary:hover {
-        background-color: #0056b3;
-      }
-      .btn-danger:hover {
-        background-color: #c82333;
-      }
+      /* 헤더에 사용할 폰트는 여기에 두는 것이 효율적입니다 */
+      @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap");
     </style>
   </head>
   <body>
@@ -118,8 +57,8 @@
         </ul>
       </nav>
       <div class="user-menu">
-        <a href="login.html">로그인</a>
-        <a href="register.html">회원가입</a>
+        <a href="/login.html">로그인</a>
+        <a href="/register.html">회원가입</a>
       </div>
     </header>
 
@@ -203,159 +142,6 @@
       </p>
     </footer>
 
-    <script>
-      // 로그인 상태에 따라 헤더 메뉴를 변경하는 함수
-      async function checkLoginStatus() {
-        const userMenu = document.querySelector(".user-menu");
-        try {
-          const response = await fetch("/api/auth/status");
-          const data = await response.json();
-          if (data.isLoggedIn) {
-            let menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${data.name}님</a><a href="#" id="logout-btn">로그아웃</a>`;
-            if (data.role === "admin") {
-              menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${data.name}님</a><a href="/admin.html" class="admin-link">관리자 공간</a><a href="#" id="logout-btn">로그아웃</a>`;
-            }
-            userMenu.innerHTML = menuHtml;
-            document
-              .getElementById("logout-btn")
-              .addEventListener("click", async (e) => {
-                e.preventDefault();
-                const logoutResponse = await fetch("/logout", {
-                  method: "POST",
-                });
-                if (logoutResponse.ok) {
-                  alert("로그아웃 되었습니다.");
-                  window.location.href = "/";
-                }
-              });
-          } else {
-            userMenu.innerHTML = `<a href="/login.html">로그인</a><a href="/register.html">회원가입</a>`;
-          }
-        } catch (error) {
-          console.error("로그인 상태 확인 오류:", error);
-          userMenu.innerHTML = `<a href="/login.html">로그인</a><a href="/register.html">회원가입</a>`;
-        }
-      }
-
-      // 마이페이지 정보를 가져오는 함수
-      async function fetchMyPageData() {
-        try {
-          const response = await fetch("/api/user/info");
-          const data = await response.json();
-          if (response.ok) {
-            document.getElementById("userName").textContent = data.name;
-            document.getElementById("userId").textContent = data.username;
-            document.getElementById("userEmail").textContent = data.email;
-            document.getElementById("userTitle").textContent =
-              data.title || "칭호 없음";
-            document.getElementById("userRole").textContent =
-              data.role === "admin" ? "관리자" : "일반 사용자";
-
-            // 폼 필드에 기존 값 채우기
-            document.getElementById("name").value = data.name;
-            document.getElementById("email").value = data.email;
-          } else {
-            // 로그인되어 있지 않으면 로그인 페이지로 리디렉션
-            window.location.href = "/login.html";
-          }
-        } catch (error) {
-          console.error("마이페이지 데이터 가져오기 오류:", error);
-          window.location.href = "/login.html";
-        }
-      }
-
-      // 정보 업데이트 폼 제출 이벤트 핸들러
-      document
-        .getElementById("updateInfoForm")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const name = document.getElementById("name").value;
-          const email = document.getElementById("email").value;
-
-          try {
-            const response = await fetch("/api/user/update-info", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ name, email }),
-            });
-            const result = await response.json();
-            alert(result.message);
-            if (response.ok) {
-              fetchMyPageData(); // 정보 업데이트 후 새로고침
-            }
-          } catch (error) {
-            console.error("정보 업데이트 오류:", error);
-            alert("정보 업데이트 중 오류가 발생했습니다.");
-          }
-        });
-
-      // 비밀번호 변경 폼 제출 이벤트 핸들러
-      document
-        .getElementById("changePasswordForm")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const oldPassword = document.getElementById("oldPassword").value;
-          const newPassword = document.getElementById("newPassword").value;
-          const confirmNewPassword =
-            document.getElementById("confirmNewPassword").value;
-
-          if (newPassword !== confirmNewPassword) {
-            alert("새 비밀번호가 일치하지 않습니다.");
-            return;
-          }
-
-          try {
-            const response = await fetch("/api/user/change-password", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ oldPassword, newPassword }),
-            });
-            const result = await response.json();
-            alert(result.message);
-            if (response.ok) {
-              document.getElementById("changePasswordForm").reset();
-            }
-          } catch (error) {
-            console.error("비밀번호 변경 오류:", error);
-            alert("비밀번호 변경 중 오류가 발생했습니다.");
-          }
-        });
-
-      // 회원 탈퇴 함수
-      async function deleteAccount() {
-        const confirmText = prompt(
-          `회원 탈퇴를 진행하시려면 '회원 탈퇴'를 정확히 입력하세요.`
-        );
-        if (confirmText !== "회원 탈퇴") {
-          alert("입력이 일치하지 않아 회원 탈퇴를 취소합니다.");
-          return;
-        }
-
-        try {
-          const response = await fetch("/api/user/delete-account", {
-            method: "POST",
-          });
-          const result = await response.json();
-          alert(result.message);
-          if (response.ok) {
-            window.location.href = "/";
-          }
-        } catch (error) {
-          console.error("회원 탈퇴 오류:", error);
-          alert("회원 탈퇴 중 오류가 발생했습니다.");
-        }
-      }
-
-      // 페이지 로드 시 초기 데이터 가져오기
-      document.addEventListener("DOMContentLoaded", async () => {
-        await checkLoginStatus();
-        await fetchMyPageData();
-
-        // 회원 탈퇴 버튼 이벤트 리스너 추가
-        document
-          .getElementById("deleteAccountBtn")
-          .addEventListener("click", deleteAccount);
-      });
-    </script>
+    <script src="/js/mypage.js"></script>
   </body>
 </html>
