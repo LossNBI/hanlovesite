@@ -192,10 +192,9 @@
     </footer>
 
     <script>
-      let titles = []; // 칭호 목록을 저장할 전역 변수
+      let titles = [];
       const userMenu = document.querySelector(".user-menu");
 
-      // 특정 섹션을 보여주는 함수
       function showSection(id) {
         document.querySelectorAll(".admin-section").forEach((section) => {
           section.classList.remove("active");
@@ -203,7 +202,6 @@
         document.getElementById(id).classList.add("active");
       }
 
-      // 로그인 상태를 확인하고 UI를 업데이트하는 함수
       async function checkLoginStatus() {
         try {
           const response = await fetch("/api/auth/status");
@@ -239,7 +237,6 @@
         }
       }
 
-      // 칭호 목록을 가져와 드롭다운에 추가하는 함수
       async function fetchTitles() {
         try {
           const response = await fetch("/api/admin/titles");
@@ -263,7 +260,6 @@
         }
       }
 
-      // 사용자 목록을 가져와서 테이블에 표시하는 함수
       async function fetchUsers() {
         try {
           const response = await fetch("/api/admin/users");
