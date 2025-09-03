@@ -418,48 +418,54 @@
     </style>
   </head>
   <body>
-    <div class="header">
+    <header class="main-header">
       <div class="logo">
-        <a href="/">교회 웹사이트</a>
+        <a href="/">
+          <img src="/images/main.jpg" alt="로고" />
+        </a>
       </div>
-      <nav class="nav-menu">
+      <nav class="main-nav">
         <ul>
-          <li>
+          <li class="has-submenu">
             <a href="#">교회소개</a>
             <ul class="submenu">
-              <li><a href="/greetings.html">담임목사 인사말</a></li>
-              <li><a href="#">교회 비전</a></li>
+              <li><a href="/greetings.html">인사말</a></li>
+              <li><a href="#">비전</a></li>
+              <li><a href="#">섬기는 사람들</a></li>
             </ul>
           </li>
-          <li>
+          <li class="has-submenu">
             <a href="#">교회소식</a>
             <ul class="submenu">
               <li><a href="/notice.html">공지사항</a></li>
-              <li><a href="#">새로운 소식</a></li>
+              <li><a href="#">주보</a></li>
+              <li><a href="#">새가족</a></li>
             </ul>
           </li>
-          <li><a href="#">부서별</a></li>
-          <li><a href="#">예배</a></li>
+          <li class="has-submenu">
+            <a href="#">부서별</a>
+            <ul class="submenu">
+              <li><a href="#">아동부</a></li>
+              <li><a href="#">청소년부</a></li>
+              <li><a href="#">청년부</a></li>
+              <li><a href="#">장년부</a></li>
+            </ul>
+          </li>
+          <li class="has-submenu">
+            <a href="#">예배</a>
+            <ul class="submenu">
+              <li><a href="#">주일예배</a></li>
+              <li><a href="#">수요예배</a></li>
+              <li><a href="#">새벽기도회</a></li>
+            </ul>
+          </li>
         </ul>
       </nav>
-      <div class="auth-menu">
-        <ul>
-          <li id="welcomeMessage" style="display: none"></li>
-          <li id="adminLink" style="display: none">
-            <a href="/admin.html">관리자 공간</a>
-          </li>
-          <li id="loginLink" style="display: none">
-            <a href="/login.html">로그인</a>
-          </li>
-          <li id="registerLink" style="display: none">
-            <a href="/register.html">회원가입</a>
-          </li>
-          <li id="logoutLink" style="display: none">
-            <a href="#" onclick="logout()">로그아웃</a>
-          </li>
-        </ul>
+      <div class="user-menu">
+        <a href="login.html">로그인</a>
+        <a href="register.html">회원가입</a>
       </div>
-    </div>
+    </header>
 
     <!-- 게시글 목록 페이지 -->
     <div id="postListContainer" class="main-container">
@@ -799,31 +805,38 @@
         });
       };
 
-      // UI: 로그인 상태에 따라 UI 업데이트
-      const updateUI = (status) => {
-        authStatus = status;
-        document.getElementById("welcomeMessage").style.display = "none";
-        document.getElementById("logoutLink").style.display = "none";
-        document.getElementById("adminLink").style.display = "none";
-        document.getElementById("loginLink").style.display = "block";
-        document.getElementById("registerLink").style.display = "block";
-        addPostBtn.style.display = "none";
-
-        if (status.isLoggedIn) {
-          document.getElementById(
-            "welcomeMessage"
-          ).textContent = `환영합니다, ${status.name}님!`;
-          document.getElementById("welcomeMessage").style.display = "block";
-          document.getElementById("logoutLink").style.display = "block";
-          document.getElementById("loginLink").style.display = "none";
-          document.getElementById("registerLink").style.display = "none";
-
-          if (status.role === "admin") {
-            document.getElementById("adminLink").style.display = "block";
-            addPostBtn.style.display = "block";
+      // 로그인 상태에 따라 헤더 메뉴를 변경하는 함수
+      async function checkLoginStatus() {
+        const userMenu = document.querySelector(".user-menu");
+        try {
+          const response = await fetch("/api/auth/status");
+          const data = await response.json();
+          if (data.isLoggedIn) {
+            let menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${data.name}님</a><a href="#" id="logout-btn">로그아웃</a>`;
+            if (data.role === "admin") {
+              menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${data.name}님</a><a href="/admin.html" class="admin-link">관리자 공간</a><a href="#" id="logout-btn">로그아웃</a>`;
+            }
+            userMenu.innerHTML = menuHtml;
+            document
+              .getElementById("logout-btn")
+              .addEventListener("click", async (e) => {
+                e.preventDefault();
+                const logoutResponse = await fetch("/logout", {
+                  method: "POST",
+                });
+                if (logoutResponse.ok) {
+                  alert("로그아웃 되었습니다.");
+                  window.location.href = "/";
+                }
+              });
+          } else {
+            userMenu.innerHTML = `<a href="/login.html">로그인</a><a href="/register.html">회원가입</a>`;
           }
+        } catch (error) {
+          console.error("로그인 상태 확인 오류:", error);
+          userMenu.innerHTML = `<a href="/login.html">로그인</a><a href="/register.html">회원가입</a>`;
         }
-      };
+      }
 
       // API: 로그인 상태 확인
       const checkAuthStatus = async () => {
@@ -1040,12 +1053,6 @@
         btn.addEventListener("click", () => {
           postModal.style.display = "none";
         });
-      });
-
-      window.addEventListener("click", (e) => {
-        if (e.target === postModal) {
-          postModal.style.display = "none";
-        }
       });
 
       // 페이지 로드 시 초기화 및 해시 변경 감지
