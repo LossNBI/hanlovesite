@@ -87,7 +87,7 @@
           if (data.isLoggedIn) {
             // 로그인 상태일 때: "환영합니다, [아이디]님"과 "로그아웃" 버튼 표시
             let menuHtml = `
-                    <a href="/mypage.html" class="welcome-message">환영합니다, ${data._name}님</a>
+                    <a href="/mypage.html" class="welcome-message">환영합니다, ${data.name}님</a>
                     <a href="#" id="logout-btn">로그아웃</a>
                 `;
 
