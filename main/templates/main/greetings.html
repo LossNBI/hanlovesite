@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <title>인사말 - 한사랑교회</title>
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="logo">
+        <a href="/">
+          <img src="/images/main.jpg" alt="로고" />
+        </a>
+      </div>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="#">교회소개</a></li>
+          <li><a href="#">교회소식</a></li>
+          <li><a href="#">부서별</a></li>
+          <li><a href="#">예배</a></li>
+        </ul>
+      </nav>
+      <div class="user-menu"></div>
+    </header>
+
+    <main class="content-main">
+      <h1 id="page-title"></h1>
+      <div id="page-content">
+        <p>콘텐츠를 불러오는 중입니다...</p>
+      </div>
+    </main>
+
+    <footer class="main-footer">
+      <div class="footer-links">
+        <a href="#">제안 및 문의</a> | <a href="#">이용약관</a>
+      </div>
+      <p class="footer-info">
+        13978 경기도 안양시 박달로 413 (한일아파트상가 2,3층)
+      </p>
+      <p class="footer-info2">TEL : 031-444-9730 | 010-8134-4849</p>
+      <p class="footer-copy">
+        COPYRIGHT©2025 한사랑교회 All Rights Reserved. Designed by 손지성 청년
+      </p>
+    </footer>
+
+    <script>
+      // 페이지 로드 시 콘텐츠를 불러오는 함수
+      async function fetchContent() {
+        const pageName = "greetings"; // 이 페이지의 고유 이름
+        const titleElement = document.getElementById("page-title");
+        const contentElement = document.getElementById("page-content");
+
+        try {
+          const response = await fetch(`/api/content/${pageName}`);
+          const data = await response.json();
+
+          if (response.ok) {
+            titleElement.textContent = data.title;
+            contentElement.innerHTML = data.content;
+          } else {
+            titleElement.textContent = "오류";
+            contentElement.innerHTML = `<p>${data.message}</p>`;
+          }
+        } catch (error) {
+          console.error("콘텐츠 불러오기 오류:", error);
+          titleElement.textContent = "오류";
+          contentElement.innerHTML =
+            "<p>콘텐츠를 불러오는 중 오류가 발생했습니다.</p>";
+        }
+      }
+
+      // 페이지 로드 시 실행
+      window.addEventListener("load", fetchContent);
+    </script>
+    <script>
+      // 로그인 상태에 따라 헤더 메뉴를 변경하는 함수
+      async function checkLoginStatus() {
+        const userMenu = document.querySelector(".user-menu");
+        try {
+          const response = await fetch("/api/auth/status");
+          const data = await response.json();
+          if (data.isLoggedIn) {
+            let menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${data.name}님</a><a href="#" id="logout-btn">로그아웃</a>`;
+            if (data.role === "admin") {
+              menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${data.name}님</a><a href="/admin.html" class="admin-link">관리자 공간</a><a href="#" id="logout-btn">로그아웃</a>`;
+            }
+            userMenu.innerHTML = menuHtml;
+            document
+              .getElementById("logout-btn")
+              .addEventListener("click", async (e) => {
+                e.preventDefault();
+                const logoutResponse = await fetch("/logout", {
+                  method: "POST",
+                });
+                if (logoutResponse.ok) {
+                  alert("로그아웃 되었습니다.");
+                  window.location.href = "/";
+                }
+              });
+          } else {
+            userMenu.innerHTML = `<a href="/login.html">로그인</a><a href="/register.html">회원가입</a>`;
+          }
+        } catch (error) {
+          console.error("로그인 상태 확인 오류:", error);
+          userMenu.innerHTML = `<a href="/login.html">로그인</a><a href="/register.html">회원가입</a>`;
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", checkLoginStatus);
+    </script>
+  </body>
+</html>

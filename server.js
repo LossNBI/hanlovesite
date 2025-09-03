@@ -390,6 +390,12 @@ app.get("/api/admin/titles", async (req, res) => {
   }
 });
 
+app.get("/greetings.html", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "main", "templates", "main", "greetings.html")
+  );
+});
+
 // 새로운 칭호를 추가하는 관리자 전용 API
 app.post("/api/admin/titles/add", requireAdmin, async (req, res) => {
   const { title } = req.body;
