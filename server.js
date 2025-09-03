@@ -90,6 +90,17 @@ app.get("/admin.html", (req, res) => {
   res.sendFile(path.join(__dirname, "main", "templates", "main", "admin.html"));
 });
 
+// 내 정보 페이지 접근 라우트 (로그인한 사용자만 접근 가능)
+app.get("/mypage.html", (req, res) => {
+  if (req.session.user) {
+    res.sendFile(
+      path.join(__dirname, "main", "templates", "main", "mypage.html")
+    );
+  } else {
+    res.redirect("/login.html");
+  }
+});
+
 app.get("/greetings.html", (req, res) => {
   res.sendFile(
     path.join(__dirname, "main", "templates", "main", "greetings.html")
@@ -103,15 +114,11 @@ app.get("/notice.html", (req, res) => {
   );
 });
 
-// 내 정보 페이지 접근 라우트 (로그인한 사용자만 접근 가능)
-app.get("/mypage.html", (req, res) => {
-  if (req.session.user) {
-    res.sendFile(
-      path.join(__dirname, "main", "templates", "main", "mypage.html")
-    );
-  } else {
-    res.redirect("/login.html");
-  }
+// 새로운 라우트: 공지사항 페이지 제공
+app.get("/sermon.html", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "main", "templates", "main", "sermon.html")
+  );
 });
 
 // ===================================

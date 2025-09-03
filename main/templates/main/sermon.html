@@ -3,12 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>마이페이지 - 한사랑교회</title>
+    <title>주보 - 한사랑교회</title>
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/form.css" />
-    <link rel="stylesheet" href="/css/mypage.css" />
+    <link rel="stylesheet" href="/css/sermon.css" />
     <style>
-      /* 헤더에 사용할 폰트는 여기에 두는 것이 효율적입니다 */
       @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap");
     </style>
   </head>
@@ -52,7 +51,6 @@
               <li><a href="#">주일예배</a></li>
               <li><a href="#">수요예배</a></li>
               <li><a href="#">새벽기도회</a></li>
-              <li><a href="#">유튜브</a></li>
             </ul>
           </li>
         </ul>
@@ -63,71 +61,20 @@
       </div>
     </header>
 
-    <main class="mypage-container">
-      <h1>마이페이지</h1>
-
-      <div class="mypage-section user-info">
-        <h2>사용자 정보</h2>
-        <p><strong>이름:</strong> <span id="userName"></span></p>
-        <p><strong>아이디:</strong> <span id="userId"></span></p>
-        <p><strong>이메일:</strong> <span id="userEmail"></span></p>
-        <p><strong>칭호:</strong> <span id="userTitle"></span></p>
-        <p><strong>역할:</strong> <span id="userRole"></span></p>
+    <main class="sermon-container">
+      <div class="sermon-header">
+        <h1>주보</h1>
+        <button id="addSermonBtn" class="btn-primary" style="display: none">
+          새 주보
+        </button>
       </div>
-
-      <div class="mypage-section">
-        <h2>정보 수정</h2>
-        <form id="updateInfoForm">
-          <div class="form-group">
-            <label for="name">이름</label>
-            <input type="text" id="name" name="name" required />
-          </div>
-          <div class="form-group">
-            <label for="email">이메일</label>
-            <input type="email" id="email" name="email" required />
-          </div>
-          <button type="submit" class="btn-primary">정보 업데이트</button>
-        </form>
-      </div>
-
-      <div class="mypage-section">
-        <h2>비밀번호 변경</h2>
-        <form id="changePasswordForm">
-          <div class="form-group">
-            <label for="oldPassword">현재 비밀번호</label>
-            <input
-              type="password"
-              id="oldPassword"
-              name="oldPassword"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="newPassword">새 비밀번호</label>
-            <input
-              type="password"
-              id="newPassword"
-              name="newPassword"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="confirmNewPassword">새 비밀번호 확인</label>
-            <input
-              type="password"
-              id="confirmNewPassword"
-              name="confirmNewPassword"
-              required
-            />
-          </div>
-          <button type="submit" class="btn-primary">비밀번호 변경</button>
-        </form>
-      </div>
-
-      <div class="mypage-section">
-        <h2>계정 관리</h2>
-        <button id="deleteAccountBtn" class="btn-danger">회원 탈퇴</button>
-      </div>
+      <div id="sermonGallery" class="sermon-gallery"></div>
+      <p
+        id="noSermonsMessage"
+        style="display: none; text-align: center; margin-top: 50px"
+      >
+        등록된 주보가 없습니다.
+      </p>
     </main>
 
     <footer class="main-footer">
@@ -143,6 +90,34 @@
       </p>
     </footer>
 
-    <script src="/js/mypage.js"></script>
+    <div id="uploadModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2 class="modal-header">주보 업로드</h2>
+        <form id="uploadForm">
+          <div class="form-group">
+            <label for="sermonFiles">파일 선택 (여러 개 가능)</label>
+            <input
+              type="file"
+              id="sermonFiles"
+              name="sermonFiles"
+              multiple
+              accept="image/*"
+              required
+            />
+          </div>
+          <button type="submit" class="btn-primary">업로드</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="customAlertModal" class="modal">
+      <div class="modal-content">
+        <p id="alertMessage"></p>
+        <button id="alertOkBtn" class="btn-primary">확인</button>
+      </div>
+    </div>
+
+    <script src="/js/sermon.js"></script>
   </body>
 </html>
