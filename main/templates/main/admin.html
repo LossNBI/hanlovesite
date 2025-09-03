@@ -167,18 +167,33 @@
     <script>
       let titles = []; // 칭호 목록을 저장할 전역 변수
 
-      // 로그인 상태에 따라 헤더 메뉴를 변경하는 함수
+      const userMenu = document.querySelector(".user-menu");
+
+      // 로그인 상태를 확인하고 UI를 업데이트하는 함수
       async function checkLoginStatus() {
-        const userMenu = document.querySelector(".user-menu");
         try {
           const response = await fetch("/api/auth/status");
           const data = await response.json();
+
           if (data.isLoggedIn) {
-            let menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${data.name}님</a><a href="#" id="logout-btn">로그아웃</a>`;
+            // 로그인 상태일 때: "환영합니다, [아이디]님"과 "로그아웃" 버튼 표시
+            let menuHtml = `
+                    <a href="/mypage.html" class="welcome-message">환영합니다, ${data.name}님</a>
+                    <a href="#" id="logout-btn">로그아웃</a>
+                `;
+
+            // **관리자일 경우 '관리자 공간' 버튼 추가**
             if (data.role === "admin") {
-              menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${data.name}님</a><a href="/admin.html" class="admin-link">관리자 공간</a><a href="#" id="logout-btn">로그아웃</a>`;
+              menuHtml = `
+                        <a href="/mypage.html" class="welcome-message">환영합니다, ${data.name}님</a>
+                        <a href="/admin.html" class="admin-link">관리자 공간</a>
+                        <a href="#" id="logout-btn">로그아웃</a>
+                    `;
             }
+
             userMenu.innerHTML = menuHtml;
+
+            // 로그아웃 버튼 클릭 이벤트 리스너 추가
             document
               .getElementById("logout-btn")
               .addEventListener("click", async (e) => {
@@ -188,18 +203,28 @@
                 });
                 if (logoutResponse.ok) {
                   alert("로그아웃 되었습니다.");
-                  window.location.href = "/";
+                  window.location.reload(); // 페이지 새로고침
                 }
               });
           } else {
-            userMenu.innerHTML = `<a href="/login.html">로그인</a><a href="/register.html">회원가입</a>`;
+            // 로그아웃 상태일 때: "로그인"과 "회원가입" 버튼 표시
+            userMenu.innerHTML = `
+                    <a href="/login.html">로그인</a>
+                    <a href="/register.html">회원가입</a>
+                `;
           }
         } catch (error) {
           console.error("로그인 상태 확인 오류:", error);
-          userMenu.innerHTML = `<a href="/login.html">로그인</a><a href="/register.html">회원가입</a>`;
+          // 오류 발생 시 기본값 표시
+          userMenu.innerHTML = `
+                <a href="/login.html">로그인</a>
+                <a href="/register.html">회원가입</a>
+            `;
         }
       }
 
+      // 페이지 로드 시 로그인 상태 확인 함수 실행
+      document.addEventListener("DOMContentLoaded", checkLoginStatus);
       // 섹션 열기/닫기 토글 함수
       function toggleSection(id) {
         const sectionContent = document.getElementById(id);
