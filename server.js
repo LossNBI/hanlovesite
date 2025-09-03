@@ -527,3 +527,55 @@ app.post("/api/admin/users/update", requireAdmin, async (req, res) => {
     res.status(500).json({ message: "서버 오류가 발생했습니다." });
   }
 });
+
+// 새로운 API: 관리자가 콘텐츠를 업데이트하는 라우트
+// requireAdmin 미들웨어를 사용하여 관리자만 접근 가능하도록 보호합니다.
+app.post("/api/admin/content/update", requireAdmin, async (req, res) => {
+  const { pageName, title, content } = req.body;
+  if (!pageName || !title || !content) {
+    return res.status(400).json({ message: "모든 필드를 채워주세요." });
+  }
+
+  try {
+    const db = client.db("church_db");
+    const collection = db.collection("content");
+
+    // pageName으로 문서를 찾아서 업데이트하거나, 없으면 새로 만듭니다.
+    await collection.updateOne(
+      { pageName: pageName },
+      { $set: { title: title, content: content } },
+      { upsert: true } // 문서가 없으면 새로 만듭니다.
+    );
+
+    res
+      .status(200)
+      .json({ message: "콘텐츠가 성공적으로 업데이트되었습니다." });
+  } catch (error) {
+    console.error("콘텐츠 업데이트 오류:", error);
+    res.status(500).json({ message: "서버 오류가 발생했습니다." });
+  }
+});
+
+// 새로운 API: 사용자가 콘텐츠를 가져가는 라우트
+app.get("/api/content/:pageName", async (req, res) => {
+  const pageName = req.params.pageName; // URL 파라미터에서 페이지 이름 가져오기
+
+  try {
+    const db = client.db("church_db");
+    const collection = db.collection("content");
+
+    // 요청된 페이지 이름과 일치하는 문서 찾기
+    const pageContent = await collection.findOne({ pageName: pageName });
+
+    if (pageContent) {
+      // 콘텐츠가 있으면 JSON 형식으로 전송
+      res.status(200).json(pageContent);
+    } else {
+      // 없으면 기본 메시지 전송
+      res.status(404).json({ message: "콘텐츠를 찾을 수 없습니다." });
+    }
+  } catch (error) {
+    console.error("콘텐츠 조회 오류:", error);
+    res.status(500).json({ message: "서버 오류가 발생했습니다." });
+  }
+});

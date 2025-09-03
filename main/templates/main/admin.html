@@ -459,6 +459,24 @@
         }
       }
 
+      <nav class="admin-nav">
+        <h2>관리자 메뉴</h2>
+        <ul>
+          <li>
+            <a href="/admin.html">관리자 대시보드</a>
+          </li>
+          <li>
+            <a href="/admin_content.html">콘텐츠 관리</a>
+          </li>
+          <li>
+            <a href="#">사용자 관리</a>
+          </li>{" "}
+          <li>
+            <a href="#">통계 보기</a>
+          </li>
+        </ul>
+      </nav>;
+
       // 페이지 로드 시 초기 데이터 가져오기
       document.addEventListener("DOMContentLoaded", async () => {
         await checkLoginStatus(); // 로그인 상태 확인을 먼저 실행
