@@ -238,27 +238,50 @@ const renderComments = (comments) => {
   });
 };
 
-// UI 업데이트 함수 (로그인 상태에 따라 버튼 가시성 변경)
-const updateUI = (status) => {
-  authStatus = status;
-  addPostBtn.style.display =
-    authStatus.isLoggedIn && authStatus.role === "admin"
-      ? "inline-block"
-      : "none";
-};
-
-// API: 로그인 상태 확인
+// API: 로그인 상태 확인 및 UI 업데이트
 const checkAuthStatus = async () => {
   try {
     const response = await fetch("/api/auth/status", {
       credentials: "include",
     });
-    if (response.ok) {
-      const status = await response.json();
-      updateUI(status);
+    const status = await response.json();
+
+    // authStatus 전역 변수에 로그인 상태 저장
+    authStatus = status;
+
+    // '글쓰기' 버튼 가시성 설정
+    addPostBtn.style.display =
+      authStatus.isLoggedIn && authStatus.role === "admin"
+        ? "inline-block"
+        : "none";
+
+    // 로그아웃 버튼 이벤트 리스너 추가
+    const userMenu = document.querySelector(".user-menu");
+    if (authStatus.isLoggedIn) {
+      let menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${authStatus.name}님</a><a href="#" id="logout-btn">로그아웃</a>`;
+      if (authStatus.role === "admin") {
+        menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${authStatus.name}님</a><a href="/admin.html" class="admin-link">관리자 공간</a><a href="#" id="logout-btn">로그아웃</a>`;
+      }
+      userMenu.innerHTML = menuHtml;
+      document
+        .getElementById("logout-btn")
+        .addEventListener("click", async (e) => {
+          e.preventDefault();
+          const logoutResponse = await fetch("/logout", {
+            method: "POST",
+          });
+          if (logoutResponse.ok) {
+            alert("로그아웃 되었습니다.");
+            window.location.href = "/";
+          }
+        });
+    } else {
+      userMenu.innerHTML = `<a href="/login.html">로그인</a><a href="/register.html">회원가입</a>`;
     }
   } catch (error) {
     console.error("인증 상태 확인 오류:", error);
+    // 오류 발생 시 로그인하지 않은 상태로 간주
+    authStatus = { isLoggedIn: false };
   }
 };
 
@@ -268,11 +291,41 @@ const fetchPosts = async () => {
     const response = await fetch("/api/posts");
     const posts = await response.json();
     renderPostList(posts);
-    handleHashChange();
   } catch (error) {
     console.error("게시글 목록 불러오기 오류:", error);
     await showAlert("게시글을 불러오는 중 오류가 발생했습니다.");
   }
+};
+
+// 페이지 로드 시 초기화 및 해시 변경 감지
+document.addEventListener("DOMContentLoaded", async () => {
+  // 1. 로그인 상태를 먼저 확실하게 확인
+  await checkAuthStatus();
+
+  // 2. 로그인 상태가 확인된 후, 게시글 목록을 가져옴
+  await fetchPosts();
+
+  // 3. 페이지 로드 시 URL 해시를 처리
+  handleHashChange();
+});
+
+// URL 해시가 변경될 때마다 페이지 상태를 업데이트
+window.addEventListener("hashchange", handleHashChange);
+
+// 모달 닫기
+document.querySelectorAll(".close-btn, .cancel-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    postModal.style.display = "none";
+  });
+});
+
+// UI 업데이트 함수 (로그인 상태에 따라 버튼 가시성 변경)
+const updateUI = (status) => {
+  authStatus = status;
+  addPostBtn.style.display =
+    authStatus.isLoggedIn && authStatus.role === "admin"
+      ? "inline-block"
+      : "none";
 };
 
 // API: 로그아웃
@@ -454,19 +507,3 @@ commentList.addEventListener("click", async (e) => {
     }
   }
 });
-
-// 모달 닫기
-document.querySelectorAll(".close-btn, .cancel-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    postModal.style.display = "none";
-  });
-});
-
-// 페이지 로드 시 초기화 및 해시 변경 감지
-document.addEventListener("DOMContentLoaded", () => {
-  checkAuthStatus();
-  fetchPosts();
-});
-
-// URL 해시가 변경될 때마다 페이지 상태를 업데이트
-window.addEventListener("hashchange", handleHashChange);
