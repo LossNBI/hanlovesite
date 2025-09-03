@@ -8,29 +8,52 @@
     <link rel="stylesheet" href="/css/form.css" />
     <style>
       .admin-container {
+        display: flex;
         padding: 20px;
         max-width: 1200px;
         margin: 0 auto;
       }
+      .admin-nav {
+        width: 250px;
+        flex-shrink: 0;
+        margin-right: 30px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+      }
+      .admin-nav h2 {
+        margin-top: 0;
+        font-size: 1.5em;
+        border-bottom: 2px solid #ccc;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+      }
+      .admin-nav ul {
+        list-style: none;
+        padding: 0;
+      }
+      .admin-nav li a {
+        display: block;
+        padding: 12px 15px;
+        text-decoration: none;
+        color: #333;
+        font-weight: bold;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+      }
+      .admin-nav li a:hover {
+        background-color: #e9ecef;
+      }
+      .admin-content-section {
+        flex-grow: 1;
+      }
       .admin-section {
         border: 1px solid #ddd;
         border-radius: 8px;
-        margin-bottom: 20px;
+        padding: 20px;
+        display: none; /* 초기 상태는 모두 숨김 */
       }
-      .admin-header {
-        background-color: #f2f2f2;
-        padding: 15px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-weight: bold;
-      }
-      .admin-content {
-        padding: 15px;
-        display: none; /* 초기 상태는 숨김 */
-      }
-      .admin-content.active {
+      .admin-section.active {
         display: block; /* 클릭하면 보임 */
       }
       .admin-table {
@@ -106,34 +129,23 @@
     </header>
 
     <main class="admin-container">
-      <h2>관리자 공간</h2>
+      <nav class="admin-nav">
+        <h2>관리자 메뉴</h2>
+        <ul>
+          <li>
+            <a href="#" onclick="showSection('user-management')">사용자 관리</a>
+          </li>
+          <li><a href="/admin_content.html">콘텐츠 관리</a></li>
+          <li>
+            <a href="#" onclick="showSection('title-management')">칭호 관리</a>
+          </li>
+          <li><a href="#">통계 보기</a></li>
+        </ul>
+      </nav>
 
-      <div class="admin-section">
-        <div class="admin-header" onclick="toggleSection('title-management')">
-          칭호 관리
-          <span>&#x25BC;</span>
-        </div>
-        <div id="title-management" class="admin-content">
-          <form id="add-title-form" class="admin-form-group">
-            <input
-              type="text"
-              id="new-title-input"
-              placeholder="새로운 칭호 추가"
-              required
-              style="flex: 1"
-            />
-            <button type="submit" class="btn-update">추가</button>
-          </form>
-          <ul id="title-list"></ul>
-        </div>
-      </div>
-
-      <div class="admin-section">
-        <div class="admin-header" onclick="toggleSection('user-management')">
-          사용자 정보 수정 및 관리
-          <span>&#x25BC;</span>
-        </div>
-        <div id="user-management" class="admin-content">
+      <div class="admin-content-section">
+        <div id="user-management" class="admin-section active">
+          <h2>사용자 정보 수정 및 관리</h2>
           <table class="admin-table">
             <thead>
               <tr>
@@ -147,6 +159,21 @@
             </thead>
             <tbody id="user-list"></tbody>
           </table>
+        </div>
+
+        <div id="title-management" class="admin-section">
+          <h2>칭호 관리</h2>
+          <form id="add-title-form" class="admin-form-group">
+            <input
+              type="text"
+              id="new-title-input"
+              placeholder="새로운 칭호 추가"
+              required
+              style="flex: 1"
+            />
+            <button type="submit" class="btn-update">추가</button>
+          </form>
+          <ul id="title-list"></ul>
         </div>
       </div>
     </main>
@@ -166,8 +193,15 @@
 
     <script>
       let titles = []; // 칭호 목록을 저장할 전역 변수
-
       const userMenu = document.querySelector(".user-menu");
+
+      // 특정 섹션을 보여주는 함수
+      function showSection(id) {
+        document.querySelectorAll(".admin-section").forEach((section) => {
+          section.classList.remove("active");
+        });
+        document.getElementById(id).classList.add("active");
+      }
 
       // 로그인 상태를 확인하고 UI를 업데이트하는 함수
       async function checkLoginStatus() {
@@ -176,24 +210,14 @@
           const data = await response.json();
 
           if (data.isLoggedIn) {
-            // 로그인 상태일 때: "환영합니다, [아이디]님"과 "로그아웃" 버튼 표시
-            let menuHtml = `
-                    <a href="/mypage.html" class="welcome-message">환영합니다, ${data.name}님</a>
-                    <a href="#" id="logout-btn">로그아웃</a>
-                `;
+            let menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${data.name}님</a><a href="#" id="logout-btn">로그아웃</a>`;
 
-            // **관리자일 경우 '관리자 공간' 버튼 추가**
             if (data.role === "admin") {
-              menuHtml = `
-                        <a href="/mypage.html" class="welcome-message">환영합니다, ${data.name}님</a>
-                        <a href="/admin.html" class="admin-link">관리자 공간</a>
-                        <a href="#" id="logout-btn">로그아웃</a>
-                    `;
+              menuHtml = `<a href="/my-page.html" class="welcome-message">환영합니다, ${data.name}님</a><a href="/admin.html" class="admin-link">관리자 공간</a><a href="#" id="logout-btn">로그아웃</a>`;
             }
 
             userMenu.innerHTML = menuHtml;
 
-            // 로그아웃 버튼 클릭 이벤트 리스너 추가
             document
               .getElementById("logout-btn")
               .addEventListener("click", async (e) => {
@@ -203,30 +227,16 @@
                 });
                 if (logoutResponse.ok) {
                   alert("로그아웃 되었습니다.");
-                  window.location.reload(); // 페이지 새로고침
+                  window.location.reload();
                 }
               });
           } else {
-            // 로그아웃 상태일 때: "로그인"과 "회원가입" 버튼 표시
-            userMenu.innerHTML = `
-                    <a href="/login.html">로그인</a>
-                    <a href="/register.html">회원가입</a>
-                `;
+            userMenu.innerHTML = `<a href="/login.html">로그인</a><a href="/register.html">회원가입</a>`;
           }
         } catch (error) {
           console.error("로그인 상태 확인 오류:", error);
-          // 오류 발생 시 기본값 표시
-          userMenu.innerHTML = `
-                <a href="/login.html">로그인</a>
-                <a href="/register.html">회원가입</a>
-            `;
+          userMenu.innerHTML = `<a href="/login.html">로그인</a><a href="/register.html">회원가입</a>`;
         }
-      }
-
-      // 섹션 열기/닫기 토글 함수
-      function toggleSection(id) {
-        const sectionContent = document.getElementById(id);
-        sectionContent.classList.toggle("active");
       }
 
       // 칭호 목록을 가져와 드롭다운에 추가하는 함수
@@ -234,17 +244,16 @@
         try {
           const response = await fetch("/api/admin/titles");
           const data = await response.json();
-          titles = data.map((t) => t.title); // 전역 변수에 칭호 저장
+          titles = data.map((t) => t.title);
 
-          // 칭호 관리 섹션에 목록 표시
           const titleListElement = document.getElementById("title-list");
           titleListElement.innerHTML = "";
           titles.forEach((title) => {
             const li = document.createElement("li");
             li.className = "title-list-item";
             li.innerHTML = `
-              <span>${title}</span>
-              <button class="btn-demote" onclick="deleteTitle('${title}')">삭제</button>
+                <span>${title}</span>
+                <button class="btn-demote" onclick="deleteTitle('${title}')">삭제</button>
             `;
             titleListElement.appendChild(li);
           });
@@ -265,7 +274,7 @@
           if (response.ok) {
             users.forEach((user) => {
               const row = document.createElement("tr");
-              // 칭호 드롭다운 메뉴 생성
+
               const titleDropdown = document.createElement("select");
               titleDropdown.onchange = (e) =>
                 updateUserTitle(user._id, e.target.value);
@@ -280,7 +289,6 @@
                 titleDropdown.appendChild(option);
               });
 
-              // '칭호 없음' 옵션 추가
               const noTitleOption = document.createElement("option");
               noTitleOption.value = "";
               noTitleOption.textContent = "칭호 없음";
@@ -303,7 +311,8 @@
                     }>관리자</option>
                   </select>
                 </td>
-                <td></td> <td>
+                <td></td>
+                <td>
                   <div class="btn-group">
                     <button class="btn-update" onclick="resetUserPassword('${
                       user._id
@@ -327,11 +336,9 @@
         }
       }
 
-      // 역할(Role)을 업데이트하는 함수
       async function updateUserRole(userId, newRole) {
         const confirmUpdate = confirm(`${newRole} 역할로 변경하시겠습니까?`);
         if (!confirmUpdate) return;
-
         try {
           const response = await fetch("/api/admin/users/update", {
             method: "POST",
@@ -349,7 +356,6 @@
         }
       }
 
-      // 칭호(Title)를 업데이트하는 함수
       async function updateUserTitle(userId, newTitle) {
         try {
           const response = await fetch("/api/admin/users/update", {
@@ -368,7 +374,6 @@
         }
       }
 
-      // 새로운 칭호를 추가하는 폼 제출 이벤트 핸들러
       document
         .getElementById("add-title-form")
         .addEventListener("submit", async (e) => {
@@ -386,8 +391,8 @@
             alert(result.message);
             if (response.ok) {
               document.getElementById("new-title-input").value = "";
-              await fetchTitles(); // 칭호 목록 새로고침
-              fetchUsers(); // 사용자 목록도 새로고침
+              await fetchTitles();
+              fetchUsers();
             }
           } catch (error) {
             console.error("칭호 추가 오류:", error);
@@ -395,7 +400,6 @@
           }
         });
 
-      // 칭호를 삭제하는 함수
       async function deleteTitle(title) {
         const confirmText = prompt(
           `'${title}' 칭호를 삭제하려면 '삭제'를 입력하세요.`
@@ -414,8 +418,8 @@
           const result = await response.json();
           alert(result.message);
           if (response.ok) {
-            await fetchTitles(); // 칭호 목록 새로고침
-            fetchUsers(); // 사용자 목록도 새로고침
+            await fetchTitles();
+            fetchUsers();
           }
         } catch (error) {
           console.error("칭호 삭제 오류:", error);
@@ -423,7 +427,6 @@
         }
       }
 
-      // 사용자 비밀번호를 재설정하는 함수
       async function resetUserPassword(userId, username) {
         const newPassword = prompt(
           `${username} 사용자의 새로운 비밀번호를 입력하세요:`
@@ -455,7 +458,6 @@
         }
       }
 
-      // 사용자 계정을 삭제하는 함수 (새로 추가)
       async function deleteUser(userId, username) {
         const confirmText = prompt(
           `'${username}' 사용자를 삭제하려면 '삭제'를 입력하세요.`
@@ -474,7 +476,7 @@
           const result = await response.json();
           alert(result.message);
           if (response.ok) {
-            fetchUsers(); // 사용자 목록 새로고침
+            fetchUsers();
           }
         } catch (error) {
           console.error("사용자 삭제 오류:", error);
@@ -482,27 +484,8 @@
         }
       }
 
-      <nav class="admin-nav">
-        <h2>관리자 메뉴</h2>
-        <ul>
-          <li>
-            <a href="/admin.html">관리자 대시보드</a>
-          </li>
-          <li>
-            <a href="/admin_content.html">콘텐츠 관리</a>
-          </li>
-          <li>
-            <a href="#">사용자 관리</a>
-          </li>{" "}
-          <li>
-            <a href="#">통계 보기</a>
-          </li>
-        </ul>
-      </nav>;
-
-      // 페이지 로드 시 초기 데이터 가져오기
       document.addEventListener("DOMContentLoaded", async () => {
-        await checkLoginStatus(); // 로그인 상태 확인을 먼저 실행
+        await checkLoginStatus();
         await fetchTitles();
         fetchUsers();
       });
