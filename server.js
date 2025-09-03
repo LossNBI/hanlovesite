@@ -8,6 +8,15 @@ const { ObjectId } = require("mongodb");
 const bcrypt = require("bcryptjs");
 const session = require("express-session");
 const multer = require("multer");
+const { v2: cloudinary } = require("cloudinary");
+const fs = require("fs");
+
+// Cloudinary 설정은 .env 파일에서 불러옵니다.
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Express 애플리케이션을 생성합니다.
 const app = express();
@@ -17,15 +26,13 @@ const port = 3000;
 const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
 
+// Multer 설정
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // 파일을 저장할 폴더를 지정합니다.
-    cb(null, "public/uploads/");
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
   },
-  filename: function (req, file, cb) {
-    // 파일명을 원래 이름에 현재 시간을 더해 중복을 방지합니다.
-    const ext = path.extname(file.originalname);
-    cb(null, path.basename(file.originalname, ext) + "-" + Date.now() + ext);
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
   },
 });
 const upload = multer({ storage: storage });
@@ -512,6 +519,74 @@ app.get("/api/content/:pageName", async (req, res) => {
   }
 });
 
+// ===================================
+// 주보 업로드 API
+// ===================================
+
+// POST /api/sermons/upload: 주보 업로드 API
+app.post(
+  "/api/sermons/upload",
+  upload.array("sermonFiles"),
+  requireAdmin,
+  async (req, res) => {
+    try {
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ message: "업로드할 파일이 없습니다." });
+      }
+
+      const db = client.db("church_db");
+      const collection = db.collection("sermons");
+      const sermonDocs = [];
+
+      for (const file of req.files) {
+        // Cloudinary에 파일 업로드
+        const result = await cloudinary.uploader.upload(file.path, {
+          folder: "church_sermons", // 주보를 저장할 폴더명
+        });
+
+        // 임시 파일 삭제
+        fs.unlinkSync(file.path);
+
+        sermonDocs.push({
+          filename: file.originalname,
+          imageUrl: result.secure_url, // Cloudinary 이미지 URL
+          uploadDate: new Date(),
+          uploaderId: req.session.user.id,
+        });
+      }
+
+      // MongoDB에 문서 삽입
+      await collection.insertMany(sermonDocs);
+
+      res.status(200).json({
+        message: "주보가 성공적으로 업로드되었습니다.",
+        sermons: sermonDocs,
+      });
+    } catch (error) {
+      console.error("주보 업로드 오류:", error);
+      res.status(500).json({ message: "주보 업로드 중 오류가 발생했습니다." });
+    }
+  }
+);
+
+// GET /api/sermons: 주보 목록을 가져오는 API
+app.get("/api/sermons", async (req, res) => {
+  try {
+    const db = client.db("church_db");
+    const collection = db.collection("sermons");
+    const sermons = await collection
+      .find({})
+      .sort({ uploadDate: -1 })
+      .toArray();
+    res.status(200).json(sermons);
+  } catch (error) {
+    console.error("주보 목록 조회 오류:", error);
+    res
+      .status(500)
+      .json({ message: "주보 목록을 불러오는 중 오류가 발생했습니다." });
+  }
+});
+
 // 서버를 시작하고 지정된 포트에서 대기합니다.
 app.listen(port, () => {
   console.log(`서버가 http://localhost:${port} 에서 실행 중입니다.`);
@@ -744,12 +819,19 @@ app.delete("/api/posts/:postId/comments/:commentId", async (req, res) => {
   }
 });
 
-// 파일 업로드를 위한 API 엔드포인트
-app.post("/api/upload", upload.single("file"), (req, res) => {
-  // 업로드가 성공하면 파일의 URL을 프론트엔드로 보냅니다.
-  if (req.file) {
-    res.status(200).json({ url: `/uploads/${req.file.filename}` });
-  } else {
-    res.status(400).json({ message: "파일 업로드 실패" });
+// POST /api/upload: Quill 에디터용 이미지 업로드 API
+app.post("/api/upload", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "업로드할 파일이 없습니다." });
+    }
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "church_notices",
+    });
+    fs.unlinkSync(req.file.path);
+    res.status(200).json({ url: result.secure_url });
+  } catch (error) {
+    console.error("Quill 이미지 업로드 오류:", error);
+    res.status(500).json({ message: "이미지 업로드 중 오류가 발생했습니다." });
   }
 });

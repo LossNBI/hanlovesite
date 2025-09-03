@@ -95,7 +95,7 @@ const renderSermons = (sermons) => {
     const sermonItem = document.createElement("div");
     sermonItem.className = "sermon-item";
     sermonItem.innerHTML = `
-      <img src="${sermon.url}" alt="${sermon.filename}" />
+      <img src="${sermon.imageUrl}" alt="${sermon.filename}" />
       <div class="sermon-item-meta">${new Date(
         sermon.uploadDate
       ).toLocaleDateString()}</div>
