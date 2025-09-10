@@ -1,145 +1,57 @@
-<!-- church/main/templates/main/home.html -->
-
 <!DOCTYPE html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- 스타일 연결-->
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/form.css" />
+
+    <!-- 파비콘 설정 -->
     <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="apple-touch-icon"
+      sizes="76x76"
+      href="/public/images/apple-icon-76x76.png"
     />
-    <link rel="icon" href="/public/images/favicon.ico" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="96x96"
+      href="/public/images/favicon-96x96.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="48x48"
+      href="/public/images/android-icon-48x48.png"
+    />
+    <link rel="shortcut icon" href="/public/images/favicon.ico" />
     <title>한사랑교회 홈페이지</title>
   </head>
   <body>
     <header class="main-header">
-      <div class="menu-toggle">
-        <i class="fas fa-bars"></i>
-      </div>
       <div class="logo">
         <a href="/">
           <img src="/images/main.jpg" alt="로고" />
         </a>
       </div>
-      <nav class="main-nav">
-        <ul>
-          <li><a href="/greetings.html">교회소개</a></li>
-          <li><a href="/notice.html">교회소식</a></li>
-          <li><a href="#">부서별</a></li>
-          <li><a href="#">예배</a></li>
-        </ul>
-      </nav>
-      <div class="user-menu-icons"></div>
     </header>
 
-    <div id="user-modal" class="modal">
-      <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <div class="modal-links">
-          <a href="/login.html" class="btn">로그인</a>
-          <a href="/register.html" class="btn">회원가입</a>
-        </div>
+    <section class="main-slider">
+      <img src="/images/slider.jpg" alt="메인 슬라이드" />
+    </section>
+
+    <footer class="main-footer">
+      <div class="footer-links">
+        <a href="#">제안 및 문의</a> | <a href="#">이용약관</a>
       </div>
-    </div>
-
-    <script>
-      const menuToggle = document.querySelector(".menu-toggle");
-      const mainNav = document.querySelector(".main-nav");
-      const userMenuIcons = document.querySelector(".user-menu-icons");
-      const userModal = document.getElementById("user-modal");
-      const closeBtn = document.querySelector(".close-btn");
-      const userIconLink = document.querySelector(".user-icon-link");
-
-      // 메뉴 토글 기능
-      menuToggle.addEventListener("click", () => {
-        mainNav.classList.toggle("active");
-      });
-
-      // 팝업 열기
-      userIconLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        userModal.style.display = "block";
-      });
-
-      // 팝업 닫기
-      closeBtn.addEventListener("click", () => {
-        userModal.style.display = "none";
-      });
-      window.addEventListener("click", (e) => {
-        if (e.target === userModal) {
-          userModal.style.display = "none";
-        }
-      });
-
-      // 기존 로그인 상태 확인 스크립트 수정
-      async function checkLoginStatus() {
-        try {
-          const response = await fetch("/api/auth/status");
-          const data = await response.json();
-
-          if (data.isLoggedIn) {
-            let userHtml = `
-              <div class="icon-wrapper">
-                <a href="/mypage.html" class="user-icon-link" data-tooltip="사용자 설정">
-                  <i class="fas fa-user"></i>
-                </a>
-              </div>
-            `;
-            if (data.role === "admin") {
-              userHtml += `
-                <div class="icon-wrapper">
-                  <a href="/admin.html" class="admin-link" data-tooltip="관리자 공간">
-                    <i class="fas fa-cog"></i>
-                  </a>
-                </div>
-              `;
-            }
-            userHtml += `
-              <div class="icon-wrapper">
-                <a href="#" id="logout-btn" data-tooltip="로그아웃">
-                  <i class="fas fa-sign-out-alt"></i>
-                </a>
-              </div>
-            `;
-            userMenuIcons.innerHTML = userHtml;
-
-            // 로그아웃 버튼 이벤트 리스너 추가
-            document
-              .getElementById("logout-btn")
-              .addEventListener("click", async (e) => {
-                e.preventDefault();
-                const logoutResponse = await fetch("/logout", {
-                  method: "POST",
-                });
-                if (logoutResponse.ok) {
-                  alert("로그아웃 되었습니다.");
-                  window.location.reload();
-                }
-              });
-          } else {
-            // 로그인/회원가입 팝업 아이콘
-            userMenuIcons.innerHTML = `
-              <div class="icon-wrapper">
-                <a href="#" id="login-register-link" data-tooltip="로그인/회원가입">
-                  <i class="fas fa-lock"></i>
-                </a>
-              </div>
-            `;
-            document
-              .getElementById("login-register-link")
-              .addEventListener("click", (e) => {
-                e.preventDefault();
-                userModal.style.display = "block";
-              });
-          }
-        } catch (error) {
-          console.error("로그인 상태 확인 오류:", error);
-        }
-      }
-      document.addEventListener("DOMContentLoaded", checkLoginStatus);
-    </script>
+      <p class="footer-info">
+        13978 경기도 안양시 박달로 413 (한일아파트상가 2,3층)
+      </p>
+      <p class="footer-info2">TEL : 031-444-9730 | 010-8134-4849</p>
+      <p class="footer-copy">
+        COPYRIGHT©2025 한사랑교회 All Rights Reserved. Designed by 손지성 청년
+      </p>
+    </footer>
   </body>
 </html>
