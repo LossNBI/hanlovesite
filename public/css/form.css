@@ -17,7 +17,7 @@
   color: #333;
   margin-bottom: 25px;
   font-size: 28px;
-  border-bottom: none; /* 기존 h2 스타일 오버라이드 */
+  border-bottom: none;
   padding-bottom: 0;
 }
 
@@ -27,7 +27,7 @@
 }
 
 .input-group label {
-  display: block; /* 라벨을 한 줄 전체로 차지하게 만듬 */
+  display: block;
   margin-bottom: 8px;
   font-weight: bold;
   color: #555;
@@ -36,11 +36,11 @@
 .input-group input[type="text"],
 .input-group input[type="password"],
 .input-group input[type="email"] {
-  width: 100%; /* 너비를 부모 요소에 맞춤 */
+  width: 100%;
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 5px;
-  box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+  box-sizing: border-box;
   font-size: 16px;
 }
 
@@ -80,30 +80,38 @@
 }
 
 /* --------------------
-    모바일용 미디어 쿼리 (화면 너비 768px 이하)
+    모바일 반응형 (화면 너비 768px 이하)
 -------------------- */
 @media (max-width: 768px) {
+  /* 폼 컨테이너 */
   .form-container {
-    margin: 30px auto;
+    max-width: 90%;
+    margin: 40px auto;
     padding: 20px;
   }
 
+  /* 폼 제목 */
   .login-form h2,
   .register-form h2 {
     font-size: 24px;
     margin-bottom: 20px;
   }
 
-  .input-group input {
+  /* 입력 필드 */
+  .input-group input[type="text"],
+  .input-group input[type="password"],
+  .input-group input[type="email"] {
     padding: 10px;
     font-size: 14px;
   }
 
+  /* 제출 버튼 */
   .btn-submit {
     padding: 12px;
     font-size: 16px;
   }
 
+  /* 하단 링크 */
   .form-links a {
     font-size: 12px;
   }

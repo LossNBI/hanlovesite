@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/form.css" />
     <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link
       rel="apple-touch-icon"
       sizes="76x76"
       href="/public/images/apple-icon-76x76.png"
@@ -29,6 +33,9 @@
   </head>
   <body>
     <header class="main-header">
+      <div class="menu-toggle">
+        <i class="fas fa-bars"></i>
+      </div>
       <div class="logo">
         <a href="/">
           <img src="/images/main.jpg" alt="로고" />
@@ -36,92 +43,91 @@
       </div>
       <nav class="main-nav">
         <ul>
-          <li class="has-submenu">
-            <a href="#">교회소개</a>
-            <ul class="submenu">
-              <li><a href="/greetings.html">인사말</a></li>
-              <li><a href="#">비전</a></li>
-              <li><a href="#">섬기는 사람들</a></li>
-            </ul>
-          </li>
-          <li class="has-submenu">
-            <a href="#">교회소식</a>
-            <ul class="submenu">
-              <li><a href="/notice.html">공지사항</a></li>
-              <li><a href="/sermon.html">주보</a></li>
-              <li><a href="#">새가족</a></li>
-            </ul>
-          </li>
-          <li class="has-submenu">
-            <a href="#">부서별</a>
-            <ul class="submenu">
-              <li><a href="#">아동부</a></li>
-              <li><a href="#">청소년부</a></li>
-              <li><a href="#">청년부</a></li>
-              <li><a href="#">장년부</a></li>
-            </ul>
-          </li>
-          <li class="has-submenu">
-            <a href="#">예배</a>
-            <ul class="submenu">
-              <li><a href="#">주일예배</a></li>
-              <li><a href="#">수요예배</a></li>
-              <li><a href="#">새벽기도회</a></li>
-              <li><a href="#">유튜브</a></li>
-            </ul>
-          </li>
+          <li><a href="/greetings.html">교회소개</a></li>
+          <li><a href="/notice.html">교회소식</a></li>
+          <li><a href="#">부서별</a></li>
+          <li><a href="#">예배</a></li>
         </ul>
       </nav>
-      <div class="user-menu">
-        <a href="login.html">로그인</a>
-        <a href="register.html">회원가입</a>
+      <div class="user-menu-icons">
+        <a href="#" class="user-icon-link">
+          <i class="fas fa-lock"></i>
+        </a>
       </div>
     </header>
 
-    <section class="main-slider">
-      <img src="/images/slider.jpg" alt="메인 슬라이드" />
-    </section>
-
-    <footer class="main-footer">
-      <div class="footer-links">
-        <a href="#">제안 및 문의</a> | <a href="#">이용약관</a>
+    <div id="user-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <div class="modal-links">
+          <a href="/login.html" class="btn">로그인</a>
+          <a href="/register.html" class="btn">회원가입</a>
+        </div>
       </div>
-      <p class="footer-info">
-        13978 경기도 안양시 박달로 413 (한일아파트상가 2,3층)
-      </p>
-      <p class="footer-info2">TEL : 031-444-9730 | 010-8134-4849</p>
-      <p class="footer-copy">
-        COPYRIGHT©2025 한사랑교회 All Rights Reserved. Designed by 손지성 청년
-      </p>
-    </footer>
-    <script>
-      const userMenu = document.querySelector(".user-menu");
+    </div>
 
-      // 로그인 상태를 확인하고 UI를 업데이트하는 함수
+    <script>
+      const menuToggle = document.querySelector(".menu-toggle");
+      const mainNav = document.querySelector(".main-nav");
+      const userMenuIcons = document.querySelector(".user-menu-icons");
+      const userModal = document.getElementById("user-modal");
+      const closeBtn = document.querySelector(".close-btn");
+      const userIconLink = document.querySelector(".user-icon-link");
+
+      // 메뉴 토글 기능
+      menuToggle.addEventListener("click", () => {
+        mainNav.classList.toggle("active");
+      });
+
+      // 팝업 열기
+      userIconLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        userModal.style.display = "block";
+      });
+
+      // 팝업 닫기
+      closeBtn.addEventListener("click", () => {
+        userModal.style.display = "none";
+      });
+      window.addEventListener("click", (e) => {
+        if (e.target === userModal) {
+          userModal.style.display = "none";
+        }
+      });
+
+      // 기존 로그인 상태 확인 스크립트 수정
       async function checkLoginStatus() {
         try {
           const response = await fetch("/api/auth/status");
           const data = await response.json();
 
           if (data.isLoggedIn) {
-            // 로그인 상태일 때: "환영합니다, [아이디]님"과 "로그아웃" 버튼 표시
-            let menuHtml = `
-                    <a href="/mypage.html" class="welcome-message">환영합니다, ${data.name}님</a>
-                    <a href="#" id="logout-btn">로그아웃</a>
-                `;
-
-            // **관리자일 경우 '관리자 공간' 버튼 추가**
+            let userHtml = `
+              <div class="icon-wrapper">
+                <a href="/mypage.html" class="user-icon-link" data-tooltip="사용자 설정">
+                  <i class="fas fa-user"></i>
+                </a>
+              </div>
+            `;
             if (data.role === "admin") {
-              menuHtml = `
-                        <a href="/mypage.html" class="welcome-message">환영합니다, ${data.name}님</a>
-                        <a href="/admin.html" class="admin-link">관리자 공간</a>
-                        <a href="#" id="logout-btn">로그아웃</a>
-                    `;
+              userHtml += `
+                <div class="icon-wrapper">
+                  <a href="/admin.html" class="admin-link" data-tooltip="관리자 공간">
+                    <i class="fas fa-cog"></i>
+                  </a>
+                </div>
+              `;
             }
+            userHtml += `
+              <div class="icon-wrapper">
+                <a href="#" id="logout-btn" data-tooltip="로그아웃">
+                  <i class="fas fa-sign-out-alt"></i>
+                </a>
+              </div>
+            `;
+            userMenuIcons.innerHTML = userHtml;
 
-            userMenu.innerHTML = menuHtml;
-
-            // 로그아웃 버튼 클릭 이벤트 리스너 추가
+            // 로그아웃 버튼 이벤트 리스너 추가
             document
               .getElementById("logout-btn")
               .addEventListener("click", async (e) => {
@@ -131,27 +137,29 @@
                 });
                 if (logoutResponse.ok) {
                   alert("로그아웃 되었습니다.");
-                  window.location.reload(); // 페이지 새로고침
+                  window.location.reload();
                 }
               });
           } else {
-            // 로그아웃 상태일 때: "로그인"과 "회원가입" 버튼 표시
-            userMenu.innerHTML = `
-                    <a href="/login.html">로그인</a>
-                    <a href="/register.html">회원가입</a>
-                `;
+            // 로그인/회원가입 팝업 아이콘
+            userMenuIcons.innerHTML = `
+              <div class="icon-wrapper">
+                <a href="#" id="login-register-link" data-tooltip="로그인/회원가입">
+                  <i class="fas fa-lock"></i>
+                </a>
+              </div>
+            `;
+            document
+              .getElementById("login-register-link")
+              .addEventListener("click", (e) => {
+                e.preventDefault();
+                userModal.style.display = "block";
+              });
           }
         } catch (error) {
           console.error("로그인 상태 확인 오류:", error);
-          // 오류 발생 시 기본값 표시
-          userMenu.innerHTML = `
-                <a href="/login.html">로그인</a>
-                <a href="/register.html">회원가입</a>
-            `;
         }
       }
-
-      // 페이지 로드 시 로그인 상태 확인 함수 실행
       document.addEventListener("DOMContentLoaded", checkLoginStatus);
     </script>
   </body>

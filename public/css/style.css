@@ -14,94 +14,94 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
+  padding: 10px 20px; /* 패딩 조정 */
   background-color: #fff;
   border-bottom: 1px solid #eee;
 }
 
 /* 로고 이미지 스타일 */
 .logo img {
-  height: 100px;
+  height: 80px; /* 로고 크기 조정 */
   width: auto;
 }
 
+/* 메뉴 토글 아이콘 (모바일에서만 보임) */
+.menu-toggle {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #555;
+}
+
 /* 메인 내비게이션 스타일 */
+.main-nav {
+  display: block; /* 기본적으로는 보이게 */
+}
+
 .main-nav > ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
-}
-
-.main-nav > ul > li {
-  position: relative;
+  gap: 20px;
 }
 
 .main-nav > ul > li > a {
   text-decoration: none;
   color: #333;
   font-weight: bold;
-  padding: 10px 20px;
+  padding: 10px 0;
   display: block;
+  white-space: nowrap;
 }
 
 .main-nav > ul > li:hover > a {
   color: #007bff;
 }
 
-/* 하위 메뉴 (드롭다운) 스타일 */
-.submenu {
-  list-style: none;
-  margin: 0;
-  padding: 10px 0;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 150px;
-  display: none;
-  z-index: 10;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.has-submenu:hover > .submenu {
-  display: block;
-}
-
-.submenu li a {
-  padding: 10px 20px;
-  display: block;
-  text-decoration: none;
-  color: #333;
-}
-
-.submenu li a:hover {
-  background-color: #f5f5f5;
-  color: #007bff;
-}
-
-/* 사용자 메뉴 스타일 (로그인/회원가입/로그아웃) */
-.user-menu {
+/* 사용자 아이콘 메뉴 */
+.user-menu-icons {
   display: flex;
-  gap: 15px;
+  gap: 20px;
 }
 
-.user-menu a {
-  text-decoration: none;
-  color: #333;
-  font-weight: bold;
+.user-menu-icons a {
+  color: #555;
+  font-size: 24px;
+  position: relative;
 }
 
-.user-menu a:hover {
+.user-menu-icons a:hover {
   color: #007bff;
 }
 
-/* 환영 메시지 스타일 */
-.user-menu .welcome-message {
-  color: #333;
-  font-weight: bold;
-  margin-right: -10px; /* 기존 링크 간격 고려 */
+/* 툴팁 스타일 */
+.icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 10;
+}
+
+[data-tooltip]:hover::after {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* --------------------
@@ -148,71 +148,134 @@ body {
     모달 (팝업) 스타일
 -------------------- */
 .modal {
-  display: none; /* 기본적으로 숨김 */
-  position: fixed; /* 화면에 고정 */
-  z-index: 100; /* 다른 요소 위에 표시 */
+  display: none;
+  position: fixed;
+  z-index: 1000;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4); /* 반투명 검은 배경 */
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex; /* Flexbox를 사용하여 중앙 정렬 */
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 300px;
+  text-align: center;
+  position: relative;
+}
+
+.modal-links {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modal-links .btn {
+  padding: 12px;
+  background-color: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.modal-links .btn:hover {
+  background-color: #0056b3;
+}
+
+.close-btn {
+  color: #aaa;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+  color: #000;
 }
 
 /* --------------------
-    모바일용 미디어 쿼리 (화면 너비 768px 이하)
+    모바일 반응형 (화면 너비 768px 이하)
 -------------------- */
+
 @media (max-width: 768px) {
-  /* 헤더 스타일 조정 */
+  /* 헤더 스타일 */
   .main-header {
-    flex-direction: column; /* 세로 방향으로 정렬 */
-    align-items: center; /* 가운데 정렬 */
-    padding: 10px;
+    padding: 10px 15px;
   }
 
-  /* 로고 크기 조정 */
   .logo img {
-    height: 70px;
+    height: 60px;
   }
 
-  /* 내비게이션 스타일 조정 */
+  /* 메뉴 토글 아이콘 활성화 */
+  .menu-toggle {
+    display: block;
+  }
+
+  /* 내비게이션 숨기기 및 열기 */
   .main-nav {
-    width: 100%; /* 전체 너비 차지 */
-    text-align: center;
+    display: none; /* 기본적으로 숨김 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px; /* 메뉴 패널 너비 */
+    height: 100%;
+    background-color: #fff;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    transform: translateX(-100%); /* 왼쪽으로 숨기기 */
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .main-nav.active {
+    transform: translateX(0); /* 보이기 */
   }
 
   .main-nav > ul {
-    flex-direction: column; /* 메뉴 항목 세로로 정렬 */
+    flex-direction: column;
+    padding-top: 60px;
   }
 
   .main-nav > ul > li {
     width: 100%;
-    margin-bottom: 5px; /* 항목 간 간격 추가 */
+    border-bottom: 1px solid #eee;
   }
 
-  /* 서브메뉴(드롭다운) 스타일 조정 */
-  .submenu {
-    position: static; /* 드롭다운을 페이지 흐름에 맞춤 */
-    width: 100%;
-    border: none;
-    box-shadow: none;
-    padding: 0;
+  .main-nav > ul > li > a {
+    padding: 15px 20px;
   }
 
-  .submenu li a {
-    padding-left: 40px; /* 들여쓰기 추가 */
+  /* 사용자 아이콘 메뉴 */
+  .user-menu-icons {
+    gap: 15px;
   }
 
-  /* 사용자 메뉴 스타일 조정 */
-  .user-menu {
-    width: 100%;
-    justify-content: center; /* 메뉴 항목 가운데 정렬 */
-    margin-top: 10px;
-    gap: 10px;
+  .user-menu-icons a {
+    font-size: 20px;
   }
 
-  .user-menu a,
-  .user-menu .welcome-message {
-    font-size: 14px;
+  /* 푸터 스타일 */
+  .main-footer {
+    padding: 15px;
+  }
+
+  .main-footer .footer-info,
+  .main-footer .footer-info2 {
+    font-size: 12px;
   }
 }
