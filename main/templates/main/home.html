@@ -6,35 +6,51 @@
     <!-- 스타일 연결-->
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/form.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
 
     <!-- 파비콘 설정 -->
     <link
       rel="apple-touch-icon"
+      type="image/png"
       sizes="76x76"
-      href="/public/images/apple-icon-76x76.png"
+      href="/images/apple-icon-76x76.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="96x96"
-      href="/public/images/favicon-96x96.png"
+      href="/images/favicon-96x96.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="48x48"
-      href="/public/images/android-icon-48x48.png"
+      href="/images/android-icon-48x48.png"
     />
-    <link rel="shortcut icon" href="/public/images/favicon.ico" />
+    <link rel="shortcut icon" href="/images/favicon.ico" />
     <title>한사랑교회 홈페이지</title>
   </head>
   <body>
     <header class="main-header">
+      <div class="main-toggle">
+        <i class="fas fa-bars"></i>
+      </div>
       <div class="logo">
         <a href="/">
           <img src="/images/main.jpg" alt="로고" />
         </a>
       </div>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="/greetings.html">교회소개</a></li>
+          <li><a href="/notice.html">교회소식</a></li>
+          <li><a href="#">부서별</a></li>
+          <li><a href="#">예배</a></li>
+        </ul>
+      </nav>
     </header>
 
     <section class="main-slider">
@@ -53,5 +69,15 @@
         COPYRIGHT©2025 한사랑교회 All Rights Reserved. Designed by 손지성 청년
       </p>
     </footer>
+
+    <script>
+      const menuToggle = document.querySelector(".main-toggle");
+      const mainNav = document.querySelector(".main-nav");
+
+      // 메뉴 토글 가능
+      menuToggle.addEventListener("click", () => {
+        mainNav.classList.toggle("active");
+      });
+    </script>
   </body>
 </html>

@@ -12,17 +12,70 @@ body {
 -------------------- */
 .main-header {
   display: flex;
-  justify-content: center; /* 로고를 중앙에 배치 */
+  justify-content: flex-start; /* 로고를 왼쪽으로 이동 */
   align-items: center;
   padding: 15px 20px;
   background-color: #fff;
   border-bottom: 1px solid #eee;
 }
 
+/* 햄버거 메뉴 아이콘 */
+.menu-toggle {
+  display: block; /* 항상 보이도록 설정 */
+  font-size: 24px;
+  cursor: pointer;
+  color: #555;
+  margin-right: 20px; /* 로고와의 간격 */
+}
+
 /* 로고 이미지 스타일 */
 .logo img {
   height: 100px;
   width: auto;
+}
+
+/* 메뉴 항목 스타일 */
+.main-nav {
+  display: none; /* 기본적으로 숨김 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px; /* 메뉴 패널 너비 */
+  height: 100%;
+  background-color: #fff;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  transform: translateX(-100%); /* 왼쪽으로 숨기기 */
+  transition: transform 0.3s ease-in-out;
+}
+
+.main-nav.active {
+  display: block; /* 메뉴가 활성화되면 보이도록 변경 */
+  transform: translateX(0); /* 보이기 */
+}
+
+.main-nav > ul {
+  list-style: none;
+  margin: 0;
+  padding-top: 80px; /* 상단 여백 추가 */
+  flex-direction: column;
+}
+
+.main-nav > ul > li {
+  width: 100%;
+  border-bottom: 1px solid #eee;
+}
+
+.main-nav > ul > li > a {
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  padding: 15px 20px;
+  display: block;
+}
+
+.main-nav > ul > li:hover > a {
+  color: #007bff;
 }
 
 /* --------------------
