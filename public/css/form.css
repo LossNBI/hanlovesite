@@ -78,3 +78,33 @@
 .form-links a:hover {
   text-decoration: underline;
 }
+
+/* --------------------
+    모바일용 미디어 쿼리 (화면 너비 768px 이하)
+-------------------- */
+@media (max-width: 768px) {
+  .form-container {
+    margin: 30px auto;
+    padding: 20px;
+  }
+
+  .login-form h2,
+  .register-form h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .input-group input {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .btn-submit {
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .form-links a {
+    font-size: 12px;
+  }
+}
