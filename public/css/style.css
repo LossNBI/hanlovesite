@@ -28,7 +28,6 @@ body {
   cursor: pointer;
   color: #555;
   margin-right: 40px; /* 로고와의 간격 */
-  z-index: 1001; /* 메뉴보다 위에 오도록 설정 */
 }
 
 /* 로고 이미지 스타일 */
@@ -60,7 +59,7 @@ body {
 .main-nav > ul {
   list-style: none;
   margin: 0;
-  padding-top: 80px; /* 상단 여백 추가 */
+  padding-top: 130px; /* 상단 여백 추가 */
   flex-direction: column;
 }
 
