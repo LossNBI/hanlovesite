@@ -17,15 +17,18 @@ body {
   padding: 15px 20px;
   background-color: #fff;
   border-bottom: 1px solid #eee;
+  position: relative; /* 자식 요소의 z-index 기준점 */
+  z-index: 1000; /* 메뉴보다 위에 오도록 설정 */
 }
 
 /* 햄버거 메뉴 아이콘 */
 .menu-toggle {
   display: block; /* 항상 보이도록 설정 */
-  font-size: 24px;
+  font-size: 100px;
   cursor: pointer;
   color: #555;
-  margin-right: 20px; /* 로고와의 간격 */
+  margin-right: 40px; /* 로고와의 간격 */
+  z-index: 1001; /* 메뉴보다 위에 오도록 설정 */
 }
 
 /* 로고 이미지 스타일 */
