@@ -37,9 +37,19 @@
   <body>
     <!--상단바-->
     <header class="navbar">
+      <button
+        class="hamburger-button"
+        aria-expanded="false"
+        aria-controls="main-navigation"
+      >
+        <span class="sr-only">메뉴 열기/닫기</span>
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
       <a href="/">
         <img src="/images/main.jpg" alt="로고" />
       </a>
+
       <nav class="nav-links-container">
         <ul class="nav-links">
           <li><a href="#">교회소개</a></li>
@@ -49,14 +59,6 @@
           <li><a href="#">자료실</a></li>
         </ul>
       </nav>
-      <button
-        class="hamburger-button"
-        aria-expanded="false"
-        aria-controls="main-navigation"
-      >
-        <span class="sr-only">메뉴 열기/닫기</span>
-        <i class="fa-solid fa-bars"></i>
-      </button>
     </header>
 
     <section class="main-slider">
@@ -75,5 +77,6 @@
         COPYRIGHT©2025 한사랑교회 All Rights Reserved. Designed by 손지성 청년
       </p>
     </footer>
+    <script src="/js/home.js"></script>
   </body>
 </html>
