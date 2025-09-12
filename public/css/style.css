@@ -16,7 +16,7 @@ body {
 
 .navbar {
   display: flex;
-  justify-content: flex-start; /* 왼쪽 정렬 */
+  justify-content: flex-start; /* 햄버거 버튼과 로고를 왼쪽에 정렬 */
   align-items: center;
   background-color: var(--primary-color);
   padding: 1rem 2rem;
@@ -26,30 +26,44 @@ body {
   gap: 1.5rem; /* 요소들 사이의 간격 추가 */
 }
 
-/* 햄버거 메뉴 버튼을 항상 표시 */
+/* 햄버거 메뉴 버튼 스타일 (항상 표시) */
 .hamburger-button {
   display: block;
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.5rem; /* 아이콘 크기 */
   color: #fff;
   cursor: pointer;
+  z-index: 1001; /* 메뉴보다 위에 오도록 */
 }
 
 /* 로고 이미지 크기 조정 */
 .navbar-logo {
-  height: 24px;
+  max-height: 30px; /* 로고 최대 높이 설정, 햄버거 버튼과 비슷하게 */
   width: auto; /* 너비는 비율에 맞게 자동으로 조정 */
 }
 
-/* 메뉴 컨테이너: 모든 화면에서 기본적으로 숨김 */
+/* 메뉴 컨테이너: 기본적으로 모든 화면에서 숨김 */
 .nav-links-container {
-  display: none;
+  display: none; /* 기본적으로 숨김 */
+  position: absolute; /* 절대 위치 */
+  top: 100%; /* 네비게이션 바 바로 아래 */
+  left: 0;
+  width: 100%;
+  background-color: rgba(43, 122, 240, 0.95); /* 배경색 지정 */
+  height: auto; /* 내용에 따라 높이 조절 */
+  max-height: 0; /* 초기 높이를 0으로 설정하여 숨김 */
+  overflow: hidden; /* 넘치는 내용 숨김 */
+  transition: max-height 0.3s ease-in-out; /* 부드러운 전환 효과 */
+  z-index: 999; /* 메뉴가 로고나 다른 내용 위에 오도록 */
+  flex-direction: column; /* 메뉴 항목들을 세로로 정렬 */
+  align-items: center;
 }
 
 /* 메뉴 컨테이너에 .active 클래스가 붙으면 보이게 함 */
 .nav-links-container.active {
-  display: block;
+  max-height: 300px; /* 메뉴가 열렸을 때의 최대 높이 (내용에 따라 조절) */
+  display: flex; /* Flexbox를 사용하여 메뉴 항목 정렬 */
 }
 
 /* 메뉴 링크 스타일 */
@@ -57,61 +71,59 @@ body {
   list-style: none;
   padding: 0;
   margin: 0;
+  width: 100%; /* 메뉴 컨테이너 전체 너비 사용 */
+}
+
+.nav-links li {
+  width: 100%;
+  text-align: center;
+  padding: 0.5rem 0;
 }
 
 .nav-links a {
+  display: block; /* 링크 전체 영역 클릭 가능 */
+  padding: 0.75rem 0;
   color: #fff;
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .nav-links a:hover {
-  color: #c7e0ff;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* --------------------
-    모바일 반응형 (화면 너비 768px 이하)
+    푸터 스타일
 -------------------- */
-@media (max-width: 768px) {
-  /* 메뉴가 절대 위치로 배치되고 세로로 정렬됨 */
-  .nav-links-container {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background-color: rgba(43, 122, 240, 0.9);
-    height: 0;
-    overflow: hidden;
-    transition: height 0.3s ease-in-out;
-    display: block; /* 모바일에서는 height 속성으로 제어하기 위해 블록으로 변경 */
-  }
+.main-footer {
+  background-color: #333;
+  color: #fff;
+  padding: 2rem 1rem;
+  text-align: center;
+  margin-top: 2rem;
+}
 
-  .nav-links-container.active {
-    height: 200px;
-  }
+.footer-links a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 0.5rem;
+}
 
-  .nav-links {
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    display: flex; /* 메뉴 항목들을 세로로 정렬 */
-  }
+.footer-links a:hover {
+  text-decoration: underline;
+}
 
-  .nav-links li {
-    width: 100%;
-    text-align: center;
-    padding: 0.5rem 0;
-  }
-
-  .nav-links a {
-    display: block;
-    padding: 0.75rem 0;
-  }
+.footer-info,
+.footer-info2,
+.footer-copy {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 /* --------------------
-    데스크톱 (화면 너비 769px 이상)
+    PC 환경 (화면 너비 769px 이상)
 -------------------- */
 @media (min-width: 769px) {
   .navbar {
@@ -119,22 +131,41 @@ body {
     justify-content: space-between;
   }
 
-  /* 메뉴 컨테이너 위치 초기화 및 가로 정렬 */
-  .nav-links-container {
-    display: block; /* 메뉴를 항상 보이게 함 */
-    position: static;
-  }
-
-  /* 햄버거 버튼 숨김 */
+  /* PC에서는 햄버거 버튼 숨김 */
   .hamburger-button {
     display: none;
   }
 
+  /* PC에서는 메뉴 컨테이너를 항상 보이게 하고, 가로로 정렬 */
+  .nav-links-container {
+    display: flex; /* Flexbox 사용 */
+    position: static; /* 절대 위치 해제 */
+    width: auto; /* 너비 자동 */
+    max-height: none; /* 높이 제한 해제 */
+    background-color: transparent; /* 배경색 투명 */
+    flex-direction: row; /* 메뉴 항목 가로 정렬 */
+  }
+
   /* 메뉴 항목들을 가로로 정렬 */
   .nav-links {
-    display: flex;
     flex-direction: row;
-    gap: 1.5rem;
+    gap: 1.5rem; /* 메뉴 항목 간 간격 */
+    width: auto;
+  }
+
+  .nav-links li {
+    width: auto;
+    text-align: left;
+    padding: 0;
+  }
+
+  .nav-links a {
+    padding: 0;
+  }
+
+  .nav-links a:hover {
+    background-color: transparent; /* 호버 배경색 제거 */
+    color: #c7e0ff; /* 텍스트 색상만 변경 */
   }
 }
 
