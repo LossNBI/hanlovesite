@@ -1,121 +1,30 @@
-/* church/public/css/style.css */
-
-/* 기본 스타일: 모든 요소에 적용 */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  color: #333;
+:root {
+  --primary-color: #2b7af0;
+  --background-color: #ffffff;
 }
-
-/* --------------------
-    헤더 영역 스타일
--------------------- */
-.main-header {
+/* ... */
+.navbar {
   display: flex;
-  justify-content: flex-start; /* 로고를 왼쪽으로 이동 */
+  justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  background-color: #fff;
-  border-bottom: 1px solid #eee;
-  position: relative; /* 자식 요소의 z-index 기준점 */
-  z-index: 1000; /* 메뉴보다 위에 오도록 설정 */
+  /* ... */
 }
 
-/* 햄버거 메뉴 아이콘 */
-.menu-toggle {
-  display: block; /* 항상 보이도록 설정 */
-  font-size: 100px;
-  cursor: pointer;
-  color: #555;
-  margin-right: 40px; /* 로고와의 간격 */
+.hamburger-button {
+  display: none; /* 기본적으로는 숨김 (데스크톱) */
 }
-
-/* 로고 이미지 스타일 */
-.logo img {
-  height: 100px;
-  width: auto;
-}
-
-/* 메뉴 항목 스타일 */
-.main-nav {
-  display: none; /* 기본적으로 숨김 */
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 250px; /* 메뉴 패널 너비 */
-  height: 100%;
-  background-color: #fff;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-  z-index: 999;
-  transform: translateX(-100%); /* 왼쪽으로 숨기기 */
-  transition: transform 0.3s ease-in-out;
-}
-
-.main-nav.active {
-  display: block; /* 메뉴가 활성화되면 보이도록 변경 */
-  transform: translateX(0); /* 보이기 */
-}
-
-.main-nav > ul {
-  list-style: none;
-  margin: 0;
-  padding-top: 130px; /* 상단 여백 추가 */
-  flex-direction: column;
-}
-
-.main-nav > ul > li {
-  width: 100%;
-  border-bottom: 1px solid #eee;
-}
-
-.main-nav > ul > li > a {
-  text-decoration: none;
-  color: #333;
-  font-weight: bold;
-  padding: 15px 20px;
-  display: block;
-}
-
-.main-nav > ul > li:hover > a {
-  color: #007bff;
-}
-
-/* --------------------
-    슬라이더 영역 스타일
--------------------- */
-.main-slider {
-  width: 100%;
-  overflow: hidden;
-}
-
-.main-slider img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* --------------------
-    푸터 영역 스타일
--------------------- */
-.main-footer {
-  background-color: #555;
-  color: #fff;
-  text-align: center;
-  padding: 20px;
-}
-
-.main-footer a {
-  color: #fff;
-  text-decoration: none;
-}
-
-.main-footer .footer-info,
-.main-footer .footer-info2 {
-  margin: 10px 0 5px;
-  font-size: 14px;
-}
-
-.main-footer .footer-copy {
-  margin: 5px 0 0;
-  font-size: 12px;
+/* ... */
+@media (max-width: 768px) {
+  .nav-links-container {
+    position: absolute;
+    height: 0;
+    overflow: hidden;
+    transition: height 0.3s ease-in-out;
+  }
+  .nav-links-container.active {
+    height: 200px;
+  }
+  .hamburger-button {
+    display: block; /* 모바일에서만 보이기 */
+  }
 }
