@@ -1,3 +1,5 @@
+<!-- church/main/templates/main/home.html -->
+
 <!DOCTYPE html>
 <html lang="ko">
   <head>
@@ -35,21 +37,23 @@
   </head>
   <body>
     <header class="main-header">
-      <div class="main-toggle">
-        <i class="fas fa-bars"></i>
-      </div>
-      <div class="logo">
+      <nav class="navbar">
         <a href="/">
           <img src="/images/main.jpg" alt="로고" />
         </a>
-      </div>
-      <nav class="main-nav">
-        <ul>
+        <div class="hambuger-menu">
+          <div class = "bar"></div>
+          <div class = "bar"></div>
+          <div class = "bar"></div>
+        </div>
+
+        <ul class="main-nav">
+          <li><a href="#">HOME</a></li>
           <li><a href="#">교회소개</a></li>
           <li><a href="#">교회소식</a></li>
-          <li><a href="#">부서별</a></li>
-          <li><a href="#">예배</a></li>
-        </ul>
+          <li><a href="#">갤러리</a></li>
+          <li><a href="#">게시판</a></li>
+          <li><a href="#">오시는길</a></li>
       </nav>
     </header>
 
