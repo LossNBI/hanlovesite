@@ -8,56 +8,39 @@
     <title>로그인 - 한사랑교회</title>
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/form.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
   </head>
   <body>
-    <header class="main-header">
-      <div class="logo">
-        <a href="/">
-          <img src="/images/main.jpg" alt="로고" />
-        </a>
-      </div>
-      <nav class="main-nav">
-        <ul>
-          <li class="has-submenu">
-            <a href="#">교회소개</a>
-            <ul class="submenu">
-              <li><a href="/greetings.html">인사말</a></li>
-              <li><a href="#">비전</a></li>
-              <li><a href="#">섬기는 사람들</a></li>
-            </ul>
-          </li>
-          <li class="has-submenu">
-            <a href="#">교회소식</a>
-            <ul class="submenu">
-              <li><a href="/notice.html">공지사항</a></li>
-              <li><a href="/sermon.html">주보</a></li>
-              <li><a href="#">새가족</a></li>
-            </ul>
-          </li>
-          <li class="has-submenu">
-            <a href="#">부서별</a>
-            <ul class="submenu">
-              <li><a href="#">아동부</a></li>
-              <li><a href="#">청소년부</a></li>
-              <li><a href="#">청년부</a></li>
-              <li><a href="#">장년부</a></li>
-            </ul>
-          </li>
-          <li class="has-submenu">
-            <a href="#">예배</a>
-            <ul class="submenu">
-              <li><a href="#">주일예배</a></li>
-              <li><a href="#">수요예배</a></li>
-              <li><a href="#">새벽기도회</a></li>
-              <li><a href="#">유튜브</a></li>
-            </ul>
-          </li>
+    <header class="navbar">
+      <button
+        class="hamburger-button"
+        aria-expanded="false"
+        aria-controls="main-navigation"
+      >
+        <span class="sr-only">메뉴 열기/닫기</span>
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <a href="/" class="navbar-logo-link">
+        <img src="/images/main.jpg" alt="로고" class="navbar-logo" />
+      </a>
+
+      <nav class="nav-links-container">
+        <ul class="nav-links">
+          <li><a href="#">교회소개</a></li>
+          <li><a href="#">교회소식</a></li>
+          <li><a href="#">부서별</a></li>
+          <li><a href="#">예배</a></li>
+          <li><a href="#">자료실</a></li>
         </ul>
       </nav>
-      <div class="user-menu">
-        <a href="login.html">로그인</a>
-        <a href="register.html">회원가입</a>
-      </div>
+
+      <a href="login.html" class="login-icon">
+        <i class="fa-solid fa-user"></i>
+      </a>
     </header>
 
     <main class="form-container">
@@ -91,37 +74,8 @@
         COPYRIGHT©2025 한사랑교회 All Rights Reserved. Designed by 손지성 청년
       </p>
     </footer>
-    <script>
-      const form = document.getElementById("login-form");
 
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-
-        try {
-          const response = await fetch("/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          });
-
-          const result = await response.json();
-
-          if (response.ok) {
-            alert(result.message); // '로그인 성공!' 메시지
-            window.location.href = "/"; // 홈페이지로 이동
-          } else {
-            alert(result.message); // 오류 메시지
-          }
-        } catch (error) {
-          console.error("오류:", error);
-          alert("로그인 중 오류가 발생했습니다.");
-        }
-      });
-    </script>
+    <script src="/js/home.js"></script>
+    <script src="/js/login.js"></script>
   </body>
 </html>

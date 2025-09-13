@@ -34,6 +34,19 @@ body {
   object-fit: contain; /* 이미지 비율을 유지하면서 컨테이너에 맞춤 */
 }
 
+/* 로그인 아이콘 스타일 */
+.login-icon {
+  color: #fff;
+  font-size: 1.5rem;
+  text-decoration: none;
+  cursor: pointer;
+  margin-left: auto; /* 메뉴가 오른쪽에 있을 때 오른쪽 끝으로 밀어내는 역할 */
+}
+
+.login-icon:hover {
+  color: #c7e0ff;
+}
+
 /* 메뉴 컨테이너: 기본적으로 모바일에서 사용 */
 .nav-links-container {
   display: none; /* 초기에는 숨김 */
@@ -149,4 +162,21 @@ body {
   .nav-links a {
     padding: 0;
   }
+
+  /* 로그인 아이콘 위치 조정 */
+  .login-icon {
+    margin-left: 0;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
