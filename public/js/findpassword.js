@@ -1,4 +1,4 @@
-// church/public/js/find_password.js
+// church/public/js/findpassword.js
 
 const form = document.getElementById("find-password-form");
 

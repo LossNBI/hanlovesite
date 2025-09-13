@@ -97,6 +97,7 @@ body {
   overflow: hidden;
   transition: max-height 0.3s ease-in-out;
   z-index: 999;
+  white-space: nowrap; /* 글자가 줄바꿈되지 않도록 설정 */
 }
 
 .nav-links-container.active {
@@ -175,6 +176,7 @@ body {
     max-height: none;
     background-color: transparent;
     transition: none;
+    white-space: nowrap; /* 글자가 줄바꿈되지 않도록 설정 */
   }
 
   /* 메뉴 항목들을 가로로 정렬 */
