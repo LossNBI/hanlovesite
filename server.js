@@ -149,67 +149,128 @@ app.get("/sermon.html", (req, res) => {
 // 사용자 관련 API
 // ===================================
 
-// POST /register: 회원가입 라우트 (이메일 인증 포함)
-app.post("/register", async (req, res) => {
-  const { name, username, password, email } = req.body;
+// POST /api/auth/send-code: 이메일 인증번호 전송 라우트
+app.post("/api/auth/send-code", async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: "이메일을 입력해주세요." });
+  }
+
   try {
     const db = client.db("church_db");
     const collection = db.collection("users");
-
-    // 1. 아이디 중복 확인
-    const existingUser = await collection.findOne({ username });
-    if (existingUser) {
-      return res.status(409).json({ message: "이미 존재하는 아이디입니다." });
-    }
-
-    // 2. 이메일 중복 확인 (선택 사항)
     const existingEmail = await collection.findOne({ email });
     if (existingEmail) {
       return res.status(409).json({ message: "이미 사용 중인 이메일입니다." });
     }
 
-    // 3. 비밀번호 해시 및 인증 토큰 생성
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+    // 6자리 랜덤 숫자 인증코드 생성
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
-    // 4. 새 사용자 정보 임시 저장 (isVerified: false로 초기화)
+    // 세션에 인증코드 임시 저장 (만료시간 5분 설정)
+    req.session.verificationCode = {
+      email,
+      code: verificationCode,
+      expires: Date.now() + 5 * 60 * 1000,
+    };
+
+    // Nodemailer를 사용하여 이메일 전송
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: "한사랑교회 이메일 인증번호입니다.",
+      html: `
+        <h2>한사랑교회 이메일 인증번호</h2>
+        <p>요청하신 이메일 인증번호는 다음과 같습니다.</p>
+        <p style="font-size: 24px; font-weight: bold; color: #007BFF;">${verificationCode}</p>
+        <p>5분 이내에 인증번호를 입력해 주세요.</p>
+      `,
+    };
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: "인증번호가 이메일로 전송되었습니다." });
+  } catch (error) {
+    console.error("인증번호 전송 오류:", error);
+    res.status(500).json({ message: "인증번호 전송 중 오류가 발생했습니다." });
+  }
+});
+
+// POST /api/auth/verify-code: 이메일 인증번호 확인 라우트
+app.post("/api/auth/verify-code", (req, res) => {
+  const { email, code } = req.body;
+
+  if (!req.session.verificationCode) {
+    return res.status(400).json({ message: "인증번호를 먼저 요청해주세요." });
+  }
+
+  const {
+    email: sessionEmail,
+    code: sessionCode,
+    expires,
+  } = req.session.verificationCode;
+
+  // 인증번호 만료 시간 확인
+  if (Date.now() > expires) {
+    delete req.session.verificationCode;
+    return res
+      .status(400)
+      .json({ message: "인증번호가 만료되었습니다. 다시 요청해주세요." });
+  }
+
+  // 이메일과 인증번호가 일치하는지 확인
+  if (email === sessionEmail && code === sessionCode) {
+    req.session.emailVerified = true; // 세션에 인증 완료 상태 저장
+    // 인증 성공 후 세션에서 인증코드 삭제 (선택 사항)
+    delete req.session.verificationCode;
+    return res.status(200).json({ message: "이메일 인증이 완료되었습니다." });
+  } else {
+    return res.status(400).json({ message: "인증번호가 올바르지 않습니다." });
+  }
+});
+
+// POST /register: 회원가입 라우트
+app.post("/register", async (req, res) => {
+  const { name, username, password, email } = req.body;
+  try {
+    // 세션에 이메일 인증이 완료되었는지 확인
+    if (!req.session.emailVerified) {
+      return res
+        .status(403)
+        .json({ message: "이메일 인증을 먼저 완료해야 합니다." });
+    }
+    // 이메일 인증 완료 후 세션 상태 초기화
+    delete req.session.emailVerified;
+
+    const db = client.db("church_db");
+    const collection = db.collection("users");
+
+    // 아이디 중복 확인
+    const existingUser = await collection.findOne({ username });
+    if (existingUser) {
+      return res.status(409).json({ message: "이미 존재하는 아이디입니다." });
+    }
+
+    // 이메일 중복 확인 (선택 사항)
+    const existingEmail = await collection.findOne({ email });
+    if (existingEmail) {
+      return res.status(409).json({ message: "이미 사용 중인 이메일입니다." });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = {
       name,
       username,
       password: hashedPassword,
       email,
       role: "user",
-      isVerified: false, // <-- 이메일 인증 여부
-      emailVerificationToken,
       createdAt: new Date(),
     };
     await collection.insertOne(newUser);
 
-    // 5. 인증 이메일 발송
-    const verificationLink = `https://${req.hostname}/api/auth/verify-email?token=${emailVerificationToken}`;
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to: email,
-      subject: "한사랑교회 회원가입 이메일 인증",
-      html: `
-        <h2>한사랑교회 회원가입을 환영합니다!</h2>
-        <p>안녕하세요, ${name}님.</p>
-        <p>회원가입을 완료하려면 아래 링크를 클릭하여 이메일을 인증해 주세요.</p>
-        <a href="${verificationLink}">이메일 인증하기</a>
-        <br><br>
-        <p>링크가 작동하지 않을 경우, 아래 주소를 복사하여 브라우저에 붙여넣어 주세요:</p>
-        <p>${verificationLink}</p>
-        <br>
-        <p>한사랑교회</p>
-      `,
-    };
-    await transporter.sendMail(mailOptions);
-
-    console.log(`사용자 ${username}에게 인증 이메일 전송: ${email}`);
-    res.status(200).json({
-      message:
-        "회원가입이 거의 완료되었습니다! 이메일로 전송된 인증 링크를 클릭해주세요.",
-    });
+    console.log("새로운 사용자 등록:", newUser);
+    res.status(201).json({ message: "회원가입이 성공적으로 완료되었습니다!" });
   } catch (error) {
     console.error("회원가입 오류:", error);
     res.status(500).json({ message: "서버 오류가 발생했습니다." });
