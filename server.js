@@ -1,5 +1,7 @@
 // chruch/server.js
 
+require("dotenv").config(); // .env 파일에서 환경 변수 로드
+
 // 필요한 모듈들을 불러옵니다.
 const express = require("express");
 const path = require("path");
