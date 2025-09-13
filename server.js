@@ -852,7 +852,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-// POST /find_password 라우트 추가
+// POST /findpassword 라우트 추가
 app.post("/findpassword", async (req, res) => {
   const { username_email } = req.body;
 
