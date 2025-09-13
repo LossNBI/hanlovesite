@@ -93,6 +93,12 @@ app.get("/register.html", (req, res) => {
   );
 });
 
+app.get("/findpassword.html", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "main", "templates", "main", "findpassword.html")
+  );
+});
+
 app.get("/admin.html", (req, res) => {
   res.sendFile(path.join(__dirname, "main", "templates", "main", "admin.html"));
 });
