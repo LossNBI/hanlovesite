@@ -24,14 +24,15 @@ async function updateHeaderIcons() {
     const data = await response.json();
 
     if (response.ok && data.isLoggedIn) {
-      // 로그인 상태: 마이페이지 및 로그아웃 아이콘 표시
-      let iconsHtml = `<a href="/mypage.html" class="user-icon"><i class="fa-solid fa-user-circle"></i></a><a href="#" id="logout-btn" class="logout-icon"><i class="fa-solid fa-power-off"></i></a>`;
+      // 로그인 상태: 마이페이지 아이콘을 먼저 추가
+      let iconsHtml = `<a href="/mypage.html" class="user-icon"><i class="fa-solid fa-user-circle"></i></a>`;
 
       // 관리자일 경우 관리자 공간 아이콘을 추가
       if (data.role === "admin") {
         iconsHtml += `<a href="/admin.html" class="admin-icon" title="관리자 공간"><i class="fa-solid fa-user-shield"></i></a>`;
       }
 
+      // 마지막에 로그아웃 아이콘을 한 번만 추가
       iconsHtml += `<a href="#" id="logout-btn" class="logout-icon"><i class="fa-solid fa-power-off"></i></a>`;
 
       userStatusContainer.innerHTML = iconsHtml;

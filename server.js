@@ -10,12 +10,22 @@ const session = require("express-session");
 const multer = require("multer");
 const { v2: cloudinary } = require("cloudinary");
 const fs = require("fs");
+const nodemailer = require("nodemailer");
 
 // Cloudinary 설정은 .env 파일에서 불러옵니다.
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Nodemailer 트랜스포터 생성
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER, // .env 파일에 저장된 이메일 주소
+    pass: process.env.GMAIL_APP_PASSWORD, // .env 파일에 저장된 앱 비밀번호
+  },
 });
 
 // Express 애플리케이션을 생성합니다.
@@ -839,5 +849,65 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
   } catch (error) {
     console.error("Quill 이미지 업로드 오류:", error);
     res.status(500).json({ message: "이미지 업로드 중 오류가 발생했습니다." });
+  }
+});
+
+// POST /find_password 라우트 추가
+app.post("/findpassword", async (req, res) => {
+  const { username_email } = req.body;
+
+  try {
+    const db = client.db("church_db");
+    const usersCollection = db.collection("users"); // 1. 아이디 또는 이메일로 사용자 찾기
+
+    const user = await usersCollection.findOne({
+      $or: [{ username: username_email }, { email: username_email }],
+    });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "입력하신 정보와 일치하는 회원이 없습니다." });
+    }
+
+    // 2. 임시 비밀번호 생성 및 해시
+    const tempPassword = Math.random().toString(36).substring(2, 10); // 8자리 임시 비밀번호
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // 3. 데이터베이스에 임시 비밀번호 저장
+    await usersCollection.updateOne(
+      { _id: user._id },
+      { $set: { password: hashedPassword } }
+    );
+
+    // 4. 이메일 전송
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: user.email,
+      subject: "한사랑교회 임시 비밀번호 안내입니다.",
+      html: `
+        <h2>한사랑교회 임시 비밀번호 안내</h2>
+        <p>안녕하세요, ${user.name}님.</p>
+        <p>요청하신 임시 비밀번호가 발급되었습니다.</p>
+        <p><b>임시 비밀번호: <span style="font-size: 1.2em; color: #007BFF;">${tempPassword}</span></b></p>
+        <p>로그인 후 마이페이지에서 반드시 비밀번호를 변경해주세요.</p>
+        <br>
+        <p>한사랑교회</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    console.log(`임시 비밀번호가 ${user.email}로 전송되었습니다.`);
+
+    // 5. 성공 응답
+    res
+      .status(200)
+      .json({ message: "새로운 비밀번호가 이메일로 전송되었습니다." });
+  } catch (error) {
+    console.error("비밀번호 찾기 및 이메일 전송 오류:", error);
+    res.status(500).json({
+      message: "서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    });
   }
 });
