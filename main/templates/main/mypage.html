@@ -1,66 +1,44 @@
+<!-- church/main/templates/main/mypage.html -->
+
 <!DOCTYPE html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>마이페이지 - 한사랑교회</title>
+    <title>회원가입 - 한사랑교회</title>
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/form.css" />
-    <link rel="stylesheet" href="/css/mypage.css" />
-    <style>
-      /* 헤더에 사용할 폰트는 여기에 두는 것이 효율적입니다 */
-      @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap");
-    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
   </head>
   <body>
-    <header class="main-header">
-      <div class="logo">
-        <a href="/">
-          <img src="/images/main.jpg" alt="로고" />
-        </a>
-      </div>
-      <nav class="main-nav">
-        <ul>
-          <li class="has-submenu">
-            <a href="#">교회소개</a>
-            <ul class="submenu">
-              <li><a href="/greetings.html">인사말</a></li>
-              <li><a href="#">비전</a></li>
-              <li><a href="#">섬기는 사람들</a></li>
-            </ul>
-          </li>
-          <li class="has-submenu">
-            <a href="#">교회소식</a>
-            <ul class="submenu">
-              <li><a href="/notice.html">공지사항</a></li>
-              <li><a href="/sermon.html">주보</a></li>
-              <li><a href="#">새가족</a></li>
-            </ul>
-          </li>
-          <li class="has-submenu">
-            <a href="#">부서별</a>
-            <ul class="submenu">
-              <li><a href="#">아동부</a></li>
-              <li><a href="#">청소년부</a></li>
-              <li><a href="#">청년부</a></li>
-              <li><a href="#">장년부</a></li>
-            </ul>
-          </li>
-          <li class="has-submenu">
-            <a href="#">예배</a>
-            <ul class="submenu">
-              <li><a href="#">주일예배</a></li>
-              <li><a href="#">수요예배</a></li>
-              <li><a href="#">새벽기도회</a></li>
-              <li><a href="#">유튜브</a></li>
-            </ul>
-          </li>
+    <header class="navbar">
+      <button
+        class="hamburger-button"
+        aria-expanded="false"
+        aria-controls="main-navigation"
+      >
+        <span class="sr-only">메뉴 열기/닫기</span>
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <a href="/" class="navbar-logo-link">
+        <img src="/images/main.jpg" alt="로고" class="navbar-logo" />
+      </a>
+
+      <nav class="nav-links-container">
+        <ul class="nav-links">
+          <li><a href="#">교회소개</a></li>
+          <li><a href="#">교회소식</a></li>
+          <li><a href="#">부서별</a></li>
+          <li><a href="#">예배</a></li>
+          <li><a href="#">자료실</a></li>
         </ul>
       </nav>
-      <div class="user-menu">
-        <a href="/login.html">로그인</a>
-        <a href="/register.html">회원가입</a>
-      </div>
+
+      <div class="user-status-container"></div>
     </header>
 
     <main class="mypage-container">
@@ -143,6 +121,7 @@
       </p>
     </footer>
 
+    <script src="/js/home.js"></script>
     <script src="/js/mypage.js"></script>
   </body>
 </html>
