@@ -25,11 +25,12 @@ form.addEventListener("submit", async (e) => {
 
     const result = await response.json();
 
+    alert(result.message);
+
     if (response.ok) {
-      alert(result.message);
-      window.location.href = "/login.html";
-    } else {
-      alert(result.message);
+      // 회원가입 성공 후 메인 페이지로 이동하여
+      // 이메일을 확인하라는 메시지를 사용자에게 보여줍니다.
+      window.location.href = "/";
     }
   } catch (error) {
     console.error("오류:", error);

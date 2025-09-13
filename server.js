@@ -11,6 +11,7 @@ const multer = require("multer");
 const { v2: cloudinary } = require("cloudinary");
 const fs = require("fs");
 const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 
 // Cloudinary 설정은 .env 파일에서 불러옵니다.
 cloudinary.config({
@@ -148,30 +149,107 @@ app.get("/sermon.html", (req, res) => {
 // 사용자 관련 API
 // ===================================
 
+// POST /register: 회원가입 라우트 (이메일 인증 포함)
 app.post("/register", async (req, res) => {
   const { name, username, password, email } = req.body;
   try {
     const db = client.db("church_db");
     const collection = db.collection("users");
+
+    // 1. 아이디 중복 확인
     const existingUser = await collection.findOne({ username });
     if (existingUser) {
       return res.status(409).json({ message: "이미 존재하는 아이디입니다." });
     }
+
+    // 2. 이메일 중복 확인 (선택 사항)
+    const existingEmail = await collection.findOne({ email });
+    if (existingEmail) {
+      return res.status(409).json({ message: "이미 사용 중인 이메일입니다." });
+    }
+
+    // 3. 비밀번호 해시 및 인증 토큰 생성
     const hashedPassword = await bcrypt.hash(password, 10);
+    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+
+    // 4. 새 사용자 정보 임시 저장 (isVerified: false로 초기화)
     const newUser = {
       name,
       username,
       password: hashedPassword,
       email,
       role: "user",
+      isVerified: false, // <-- 이메일 인증 여부
+      emailVerificationToken,
       createdAt: new Date(),
     };
     await collection.insertOne(newUser);
-    console.log("새로운 사용자 등록:", newUser);
-    res.status(201).json({ message: "회원가입이 성공적으로 완료되었습니다!" });
+
+    // 5. 인증 이메일 발송
+    const verificationLink = `https://${req.hostname}/api/auth/verify-email?token=${emailVerificationToken}`;
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: "한사랑교회 회원가입 이메일 인증",
+      html: `
+        <h2>한사랑교회 회원가입을 환영합니다!</h2>
+        <p>안녕하세요, ${name}님.</p>
+        <p>회원가입을 완료하려면 아래 링크를 클릭하여 이메일을 인증해 주세요.</p>
+        <a href="${verificationLink}">이메일 인증하기</a>
+        <br><br>
+        <p>링크가 작동하지 않을 경우, 아래 주소를 복사하여 브라우저에 붙여넣어 주세요:</p>
+        <p>${verificationLink}</p>
+        <br>
+        <p>한사랑교회</p>
+      `,
+    };
+    await transporter.sendMail(mailOptions);
+
+    console.log(`사용자 ${username}에게 인증 이메일 전송: ${email}`);
+    res.status(200).json({
+      message:
+        "회원가입이 거의 완료되었습니다! 이메일로 전송된 인증 링크를 클릭해주세요.",
+    });
   } catch (error) {
     console.error("회원가입 오류:", error);
     res.status(500).json({ message: "서버 오류가 발생했습니다." });
+  }
+});
+
+// GET /api/auth/verify-email: 이메일 인증 처리 라우트
+app.get("/api/auth/verify-email", async (req, res) => {
+  const { token } = req.query;
+  if (!token) {
+    return res
+      .status(400)
+      .send("유효하지 않은 인증 링크입니다. 다시 시도해 주세요.");
+  }
+
+  try {
+    const db = client.db("church_db");
+    const collection = db.collection("users");
+
+    // 1. 토큰으로 사용자 찾기
+    const user = await collection.findOne({ emailVerificationToken: token });
+
+    if (!user) {
+      return res
+        .status(404)
+        .send("인증 코드가 만료되었거나 올바르지 않습니다.");
+    }
+
+    // 2. 사용자 계정을 활성화 (isVerified: true로 업데이트)
+    await collection.updateOne(
+      { _id: user._id },
+      { $set: { isVerified: true }, $unset: { emailVerificationToken: "" } }
+    );
+
+    // 3. 성공 페이지로 리디렉션
+    // 로그인 페이지로 리디렉션하여 바로 로그인할 수 있게 합니다.
+    res.redirect("/login.html?verified=true");
+  } catch (error) {
+    console.error("이메일 인증 오류:", error);
+    res.status(500).send("이메일 인증 중 서버 오류가 발생했습니다.");
   }
 });
 
@@ -186,6 +264,14 @@ app.post("/login", async (req, res) => {
         .status(401)
         .json({ message: "아이디 또는 비밀번호가 올바르지 않습니다." });
     }
+
+    // 추가: 계정이 인증되었는지 확인
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: "이메일 인증이 필요합니다. 이메일을 확인해주세요.",
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res
