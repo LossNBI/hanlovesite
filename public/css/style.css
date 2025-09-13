@@ -1,10 +1,10 @@
 /* church/public/css/style.css */
 
 :root {
-  --primary-color: #2b7af0;
+  --primary-color: #2b7af0; /* 푸른색 계열 */
   --text-color: #333;
-  --background-color: #ffffff;
-  --danger-color: #ff4d4d; /* 빨간색 (로그아웃 버튼용) */
+  --background-color: #ffffff; /* 흰색 배경 */
+  --danger-color: #ff4d4f; /* 빨간색 계열 */
 }
 
 body {
@@ -18,7 +18,7 @@ body {
 /* --- 상단바 공통 스타일 --- */
 .navbar {
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-start; /* 모바일에서 햄버거/로고를 왼쪽에 정렬 */
   align-items: center;
   background-color: var(--primary-color);
   padding: 1rem 2rem;
@@ -40,9 +40,9 @@ body {
 
 /* 로고 이미지 크기 조절 */
 .navbar-logo {
-  height: 35px;
+  height: 40px;
   width: auto;
-  object-fit: contain;
+  object-fit: contain; /* 이미지 비율을 유지하면서 컨테이너에 맞춤 */
 }
 
 /* 유저 상태 컨테이너: JS가 내용을 동적으로 채워넣을 공간 */
@@ -72,9 +72,22 @@ body {
   color: var(--danger-color);
 }
 
+/* 로그인 아이콘 스타일 */
+.login-icon {
+  color: #fff;
+  font-size: 1.5rem;
+  text-decoration: none;
+  cursor: pointer;
+  margin-left: auto; /* 메뉴가 오른쪽에 있을 때 오른쪽 끝으로 밀어내는 역할 */
+}
+
+.login-icon:hover {
+  color: #c7e0ff;
+}
+
 /* 메뉴 컨테이너: 기본적으로 모바일에서 사용 */
 .nav-links-container {
-  display: none;
+  display: none; /* 초기에는 숨김 */
   position: absolute;
   top: 100%;
   left: 0;
@@ -87,8 +100,8 @@ body {
 }
 
 .nav-links-container.active {
-  max-height: 300px;
-  display: flex;
+  max-height: 300px; /* 메뉴가 열렸을 때의 높이 */
+  display: flex; /* 메뉴 항목들을 세로로 정렬 */
   flex-direction: column;
 }
 
@@ -119,7 +132,7 @@ body {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* --- 푸터 스타일 --- */
+/* --- 푸터 스타일 (이전과 동일) --- */
 .main-footer {
   background-color: #333;
   color: #fff;
@@ -145,12 +158,17 @@ body {
 
 /* --- 컴퓨터 환경 (769px 이상) --- */
 @media (min-width: 769px) {
+  /* 상단바 정렬 */
   .navbar {
-    justify-content: space-between;
+    justify-content: space-between; /* 로고는 왼쪽, 메뉴는 오른쪽으로 정렬 */
   }
+
+  /* 햄버거 버튼 숨김 */
   .hamburger-button {
     display: none;
   }
+
+  /* 메뉴 컨테이너를 항상 보이게 함 */
   .nav-links-container {
     display: flex;
     position: static;
@@ -158,20 +176,28 @@ body {
     background-color: transparent;
     transition: none;
   }
+
+  /* 메뉴 항목들을 가로로 정렬 */
   .nav-links {
-    flex-direction: row;
-    gap: 1.5rem;
+    display: flex;
+    flex-direction: row; /* 가로 정렬 */
+    gap: 1.5rem; /* 항목 간 간격 */
     width: auto;
     align-items: center;
   }
+
+  /* 메뉴 링크의 스타일 조정 */
   .nav-links a {
     padding: 0;
   }
+
   .nav-links a:hover {
     background-color: transparent;
     color: #c7e0ff;
   }
-  .user-status-container {
+
+  /* 로그인 아이콘 위치 조정 */
+  .login-icon {
     margin-left: 0;
   }
 }
