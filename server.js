@@ -16,6 +16,15 @@ const fs = require("fs");
 const sgMail = require("@sendgrid/mail");
 const crypto = require("crypto");
 
+// ======================= 디버깅용 코드 추가 =======================
+console.log("--- 디버깅 시작 ---");
+console.log(
+  "Render 환경 변수에서 읽어온 SENDGRID_API_KEY:",
+  process.env.SENDGRID_API_KEY
+);
+console.log("--- 디버깅 끝 ---");
+// ================================================================
+
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Cloudinary 설정은 .env 파일에서 불러옵니다.
