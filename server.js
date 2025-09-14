@@ -13,19 +13,11 @@ const session = require("express-session");
 const multer = require("multer");
 const { v2: cloudinary } = require("cloudinary");
 const fs = require("fs");
-const sgMail = require("@sendgrid/mail");
+const mailgun = require("mailgun-js");
 const crypto = require("crypto");
 
-// ======================= 디버깅용 코드 추가 =======================
-console.log("--- 디버깅 시작 ---");
-console.log(
-  "Render 환경 변수에서 읽어온 SENDGRID_API_KEY:",
-  process.env.SENDGRID_API_KEY
-);
-console.log("--- 디버깅 끝 ---");
-// ================================================================
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const DOMAIN = process.env.MAILGUN_DOMAIN;
+const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
 
 // Cloudinary 설정은 .env 파일에서 불러옵니다.
 cloudinary.config({
@@ -181,10 +173,10 @@ app.post("/api/auth/send-code", async (req, res) => {
       expires: Date.now() + 5 * 60 * 1000,
     };
 
-    // sendGrid를 사용하여 이메일 전송
-    const msg = {
+    // Mailgun을 사용하여 이메일 전송
+    const mailData = {
+      from: `한사랑교회 <hanlove@${DOMAIN}>`, // 중요: Mailgun에서 인증된 도메인 이메일
       to: email,
-      from: "hanloveemail@gmail.com", // 중요: SendGrid에 등록하고 인증한 발신자 이메일
       subject: "한사랑교회 이메일 인증번호입니다.",
       html: `
         <h2>한사랑교회 이메일 인증번호</h2>
@@ -194,7 +186,7 @@ app.post("/api/auth/send-code", async (req, res) => {
       `,
     };
 
-    await sgMail.send(msg);
+    await mg.messages().send(mailData);
 
     res.status(200).json({ message: "인증번호가 이메일로 전송되었습니다." });
   } catch (error) {
@@ -792,20 +784,21 @@ app.post("/api/auth/find-password/send-code", async (req, res) => {
       expires: Date.now() + 5 * 60 * 1000,
     };
 
-    const msg = {
+    // Mailgun을 사용하여 이메일 전송
+    const mailData = {
+      from: `한사랑교회 <hanlove@${DOMAIN}>`,
       to: user.email,
-      from: "hanloveemail@gmail.com",
       subject: "한사랑교회 비밀번호 재설정 인증번호입니다.",
       html: `
-        <h2>한사랑교회 비밀번호 재설정 인증번호</h2>
-        <p>안녕하세요, ${user.name}님.</p>
-        <p>요청하신 비밀번호 재설정 인증번호는 다음과 같습니다.</p>
-        <p style="font-size: 24px; font-weight: bold; color: #007BFF;">${verificationCode}</p>
-        <p>5분 이내에 인증번호를 입력해 주세요.</p>
-      `,
+          <h2>한사랑교회 비밀번호 재설정 인증번호</h2>
+          <p>안녕하세요, ${user.name}님.</p>
+          <p>요청하신 비밀번호 재설정 인증번호는 다음과 같습니다.</p>
+          <p style="font-size: 24px; font-weight: bold; color: #007BFF;">${verificationCode}</p>
+          <p>5분 이내에 인증번호를 입력해 주세요.</p>
+        `,
     };
 
-    await sgMail.send(msg);
+    await mg.messages().send(mailData);
 
     res.status(200).json({ message: "인증번호가 이메일로 전송되었습니다." });
   } catch (error) {
