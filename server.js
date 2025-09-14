@@ -1,6 +1,7 @@
 // chruch/server.js
 
-require("dotenv").config(); // .env 파일에서 환경 변수 로드
+// .env 파일에서 환경 변수 로드
+require("dotenv").config();
 
 // 필요한 모듈들을 불러옵니다.
 const express = require("express");
@@ -749,6 +750,152 @@ app.get("/api/sermons", async (req, res) => {
   }
 });
 
+// POST /api/auth/find-password/send-code: 비밀번호 찾기용 인증번호 전송 (새로 추가)
+app.post("/api/auth/find-password/send-code", async (req, res) => {
+  const { username_email } = req.body;
+  if (!username_email) {
+    return res
+      .status(400)
+      .json({ message: "아이디 또는 이메일을 입력해주세요." });
+  }
+
+  try {
+    const db = client.db("church_db");
+    const usersCollection = db.collection("users");
+    const user = await usersCollection.findOne({
+      $or: [{ username: username_email }, { email: username_email }],
+    });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "일치하는 회원 정보가 없습니다." });
+    }
+
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+
+    req.session.findPasswordCode = {
+      username: user.username,
+      email: user.email,
+      code: verificationCode,
+      expires: Date.now() + 5 * 60 * 1000,
+    };
+
+    const msg = {
+      to: user.email,
+      from: "hanloveemail@gmail.com",
+      subject: "한사랑교회 비밀번호 재설정 인증번호입니다.",
+      html: `
+        <h2>한사랑교회 비밀번호 재설정 인증번호</h2>
+        <p>안녕하세요, ${user.name}님.</p>
+        <p>요청하신 비밀번호 재설정 인증번호는 다음과 같습니다.</p>
+        <p style="font-size: 24px; font-weight: bold; color: #007BFF;">${verificationCode}</p>
+        <p>5분 이내에 인증번호를 입력해 주세요.</p>
+      `,
+    };
+
+    await sgMail.send(msg);
+
+    res.status(200).json({ message: "인증번호가 이메일로 전송되었습니다." });
+  } catch (error) {
+    console.error("비밀번호 찾기 인증번호 전송 오류:", error);
+    res.status(500).json({ message: "인증번호 전송 중 오류가 발생했습니다." });
+  }
+});
+
+// POST /api/auth/find-password/verify-code: 비밀번호 찾기용 인증번호 확인 (새로 추가)
+app.post("/api/auth/find-password/verify-code", async (req, res) => {
+  const { username_email, code } = req.body;
+
+  if (!req.session.findPasswordCode) {
+    return res.status(400).json({ message: "인증번호를 먼저 요청해주세요." });
+  }
+
+  const {
+    email: sessionEmail,
+    code: sessionCode,
+    expires,
+    username: sessionUsername,
+  } = req.session.findPasswordCode;
+
+  if (Date.now() > expires) {
+    delete req.session.findPasswordCode;
+    return res
+      .status(400)
+      .json({ message: "인증번호가 만료되었습니다. 다시 요청해주세요." });
+  }
+
+  // 아이디 또는 이메일과 코드가 모두 일치하는지 확인
+  if (
+    (username_email === sessionUsername || username_email === sessionEmail) &&
+    code === sessionCode
+  ) {
+    // 세션에 인증 완료 상태와 사용자 정보 임시 저장
+    req.session.passwordReset = {
+      isVerified: true,
+      username: sessionUsername,
+      email: sessionEmail,
+    };
+    delete req.session.findPasswordCode;
+    return res.status(200).json({
+      message: "인증이 완료되었습니다. 새로운 비밀번호를 입력해주세요.",
+    });
+  } else {
+    return res.status(400).json({ message: "인증번호가 올바르지 않습니다." });
+  }
+});
+
+// POST /api/auth/reset-password: 비밀번호 재설정 (새로 추가)
+app.post("/api/auth/reset-password", async (req, res) => {
+  if (!req.session.passwordReset || !req.session.passwordReset.isVerified) {
+    return res.status(403).json({
+      message:
+        "비밀번호 재설정 권한이 없습니다. 이메일 인증을 먼저 완료해주세요.",
+    });
+  }
+
+  const { new_password } = req.body;
+  if (!new_password) {
+    return res.status(400).json({ message: "새로운 비밀번호를 입력해주세요." });
+  }
+
+  try {
+    const db = client.db("church_db");
+    const usersCollection = db.collection("users");
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+
+    const userToUpdate = await usersCollection.findOne({
+      $or: [
+        { username: req.session.passwordReset.username },
+        { email: req.session.passwordReset.email },
+      ],
+    });
+
+    if (!userToUpdate) {
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+    }
+
+    await usersCollection.updateOne(
+      { _id: userToUpdate._id },
+      { $set: { password: hashedPassword } }
+    );
+
+    // 비밀번호 재설정 완료 후 세션 데이터 삭제
+    delete req.session.passwordReset;
+
+    res.status(200).json({
+      message: "비밀번호가 성공적으로 재설정되었습니다. 로그인해 주세요.",
+    });
+  } catch (error) {
+    console.error("비밀번호 재설정 오류:", error);
+    res
+      .status(500)
+      .json({ message: "비밀번호 재설정 중 오류가 발생했습니다." });
+  }
+});
+
 // 서버를 시작하고 지정된 포트에서 대기합니다.
 app.listen(port, () => {
   console.log(`서버가 http://localhost:${port} 에서 실행 중입니다.`);
@@ -995,65 +1142,5 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
   } catch (error) {
     console.error("Quill 이미지 업로드 오류:", error);
     res.status(500).json({ message: "이미지 업로드 중 오류가 발생했습니다." });
-  }
-});
-
-// POST /findpassword 라우트 추가
-app.post("/findpassword", async (req, res) => {
-  const { username_email } = req.body;
-
-  try {
-    const db = client.db("church_db");
-    const usersCollection = db.collection("users"); // 1. 아이디 또는 이메일로 사용자 찾기
-
-    const user = await usersCollection.findOne({
-      $or: [{ username: username_email }, { email: username_email }],
-    });
-
-    if (!user) {
-      return res
-        .status(404)
-        .json({ message: "입력하신 정보와 일치하는 회원이 없습니다." });
-    }
-
-    // 2. 임시 비밀번호 생성 및 해시
-    const tempPassword = Math.random().toString(36).substring(2, 10); // 8자리 임시 비밀번호
-    const hashedPassword = await bcrypt.hash(tempPassword, 10);
-
-    // 3. 데이터베이스에 임시 비밀번호 저장
-    await usersCollection.updateOne(
-      { _id: user._id },
-      { $set: { password: hashedPassword } }
-    );
-
-    // 4. 이메일 전송
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to: user.email,
-      subject: "한사랑교회 임시 비밀번호 안내입니다.",
-      html: `
-        <h2>한사랑교회 임시 비밀번호 안내</h2>
-        <p>안녕하세요, ${user.name}님.</p>
-        <p>요청하신 임시 비밀번호가 발급되었습니다.</p>
-        <p><b>임시 비밀번호: <span style="font-size: 1.2em; color: #007BFF;">${tempPassword}</span></b></p>
-        <p>로그인 후 마이페이지에서 반드시 비밀번호를 변경해주세요.</p>
-        <br>
-        <p>한사랑교회</p>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    console.log(`임시 비밀번호가 ${user.email}로 전송되었습니다.`);
-
-    // 5. 성공 응답
-    res
-      .status(200)
-      .json({ message: "새로운 비밀번호가 이메일로 전송되었습니다." });
-  } catch (error) {
-    console.error("비밀번호 찾기 및 이메일 전송 오류:", error);
-    res.status(500).json({
-      message: "서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
-    });
   }
 });
