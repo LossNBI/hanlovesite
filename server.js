@@ -12,23 +12,16 @@ const session = require("express-session");
 const multer = require("multer");
 const { v2: cloudinary } = require("cloudinary");
 const fs = require("fs");
-const nodemailer = require("nodemailer");
+const sgMail = require("@sendgrid/mail");
 const crypto = require("crypto");
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Cloudinary 설정은 .env 파일에서 불러옵니다.
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-// Nodemailer 트랜스포터 생성
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER, // .env 파일에 저장된 이메일 주소
-    pass: process.env.GMAIL_APP_PASSWORD, // .env 파일에 저장된 앱 비밀번호
-  },
 });
 
 // Express 애플리케이션을 생성합니다.
@@ -178,10 +171,10 @@ app.post("/api/auth/send-code", async (req, res) => {
       expires: Date.now() + 5 * 60 * 1000,
     };
 
-    // Nodemailer를 사용하여 이메일 전송
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
+    // sendGrid를 사용하여 이메일 전송
+    const msg = {
       to: email,
+      from: "hanloveemail@gmail.com", // 중요: SendGrid에 등록하고 인증한 발신자 이메일
       subject: "한사랑교회 이메일 인증번호입니다.",
       html: `
         <h2>한사랑교회 이메일 인증번호</h2>
@@ -190,11 +183,15 @@ app.post("/api/auth/send-code", async (req, res) => {
         <p>5분 이내에 인증번호를 입력해 주세요.</p>
       `,
     };
-    await transporter.sendMail(mailOptions);
+
+    await sgMail.send(msg);
 
     res.status(200).json({ message: "인증번호가 이메일로 전송되었습니다." });
   } catch (error) {
     console.error("인증번호 전송 오류:", error);
+    if (error.response) {
+      console.error(error.response.body);
+    }
     res.status(500).json({ message: "인증번호 전송 중 오류가 발생했습니다." });
   }
 });
