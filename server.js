@@ -2,6 +2,7 @@
 
 // .env 파일에서 환경 변수 로드
 require("dotenv").config();
+console.log("SENDGRID_API_KEY:", process.env.SENDGRID_API_KEY);
 
 // 필요한 모듈들을 불러옵니다.
 const express = require("express");
