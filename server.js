@@ -13,11 +13,16 @@ const session = require("express-session");
 const multer = require("multer");
 const { v2: cloudinary } = require("cloudinary");
 const fs = require("fs");
-const mailgun = require("mailgun-js");
 const crypto = require("crypto");
 
-const DOMAIN = process.env.MAILGUN_DOMAIN;
-const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
+// Mailgun 설정
+// const mailgun = require("mailgun-js");
+// const DOMAIN = process.env.MAILGUN_DOMAIN;
+// const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
+
+// SendGrid 모듈을 불러오고 API 키를 설정합니다.
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Cloudinary 설정은 .env 파일에서 불러옵니다.
 cloudinary.config({
@@ -173,9 +178,9 @@ app.post("/api/auth/send-code", async (req, res) => {
       expires: Date.now() + 5 * 60 * 1000,
     };
 
-    // Mailgun을 사용하여 이메일 전송
+    // SendGrid를 사용하여 이메일 전송
     const mailData = {
-      from: `한사랑교회 <hanlove@${DOMAIN}>`, // 중요: Mailgun에서 인증된 도메인 이메일
+      from: "hanloveemail@gmail.com", // SendGrid에서 인증된 발신자 이메일
       to: email,
       subject: "한사랑교회 이메일 인증번호입니다.",
       html: `
@@ -186,7 +191,7 @@ app.post("/api/auth/send-code", async (req, res) => {
       `,
     };
 
-    await mg.messages().send(mailData);
+    await sgMail.send(mailData);
 
     res.status(200).json({ message: "인증번호가 이메일로 전송되었습니다." });
   } catch (error) {
@@ -784,9 +789,9 @@ app.post("/api/auth/find-password/send-code", async (req, res) => {
       expires: Date.now() + 5 * 60 * 1000,
     };
 
-    // Mailgun을 사용하여 이메일 전송
+    // SendGrid를 사용하여 이메일 전송
     const mailData = {
-      from: `한사랑교회 <hanlove@${DOMAIN}>`,
+      from: "hanloveemail@gmail.com", // SendGrid에서 인증된 발신자 이메일
       to: user.email,
       subject: "한사랑교회 비밀번호 재설정 인증번호입니다.",
       html: `
@@ -798,7 +803,7 @@ app.post("/api/auth/find-password/send-code", async (req, res) => {
         `,
     };
 
-    await mg.messages().send(mailData);
+    await sgMail.send(mailData);
 
     res.status(200).json({ message: "인증번호가 이메일로 전송되었습니다." });
   } catch (error) {
