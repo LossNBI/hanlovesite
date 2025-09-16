@@ -1,4 +1,4 @@
-// church/public/js/findpassword.js
+// church/public/js/findpassword.js (수정 완료된 버전)
 
 const form = document.getElementById("find-password-form");
 const usernameEmailInput = document.getElementById("username_email");
@@ -16,11 +16,12 @@ const step3 = document.getElementById("step-3");
 const formDescription = document.getElementById("form-description");
 const formMessage = document.getElementById("form-message");
 const timerElement = document.getElementById("timer");
+const passwordError = document.getElementById("password-error");
 
 let isEmailVerified = false;
 let timerId;
 
-// 로딩 상태를 토글하는 함수 (회원가입 페이지와 동일)
+// 로딩 상태를 토글하는 함수 (수정 없음)
 function setButtonLoading(button, isLoading) {
   const buttonText = button.querySelector(".button-text");
   const spinner = button.querySelector(".loading-spinner");
@@ -38,13 +39,16 @@ function setButtonLoading(button, isLoading) {
   }
 }
 
-// 에러 메시지 표시/숨김 함수
+// 메시지 표시/숨김 함수 (passwordError 추가)
 function showMessage(element, message, isError = true) {
   element.textContent = message;
   element.style.color = isError ? "#e74c3c" : "#2ecc71";
 }
+function hideMessage(element) {
+  element.textContent = "";
+}
 
-// 타이머 시작 함수 (회원가입 페이지와 동일)
+// 타이머 시작 함수 (수정 없음)
 function startTimer(duration) {
   let timeLeft = duration;
   timerElement.style.display = "block";
@@ -58,12 +62,13 @@ function startTimer(duration) {
       clearInterval(timerId);
       timerElement.textContent = "인증 시간이 만료되었습니다. 다시 보내주세요.";
       sendCodeBtn.disabled = false;
+      usernameEmailInput.disabled = false;
       sendCodeBtn.querySelector(".button-text").textContent = "재전송";
     }
   }, 1000);
 }
 
-// 시간 포맷팅 함수
+// 시간 포맷팅 함수 (수정 없음)
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
@@ -78,11 +83,11 @@ sendCodeBtn.addEventListener("click", async () => {
     return;
   }
 
-  // 기존 타이머가 있으면 중지
   if (timerId) clearInterval(timerId);
-  showMessage(formMessage, "", false);
+  hideMessage(formMessage);
   setButtonLoading(sendCodeBtn, true);
 
+  let responseOk = false; // 성공 여부 플래그
   try {
     const response = await fetch("/api/auth/find-password/send-code", {
       method: "POST",
@@ -90,23 +95,30 @@ sendCodeBtn.addEventListener("click", async () => {
       body: JSON.stringify({ username_email: usernameOrEmail }),
     });
 
+    responseOk = response.ok;
     const result = await response.json();
 
-    if (response.ok) {
-      showMessage(formMessage, result.message, false);
-      // 인증번호 입력 섹션 보이기
+    if (responseOk) {
+      // UX 개선: alert 대신 페이지 내 메시지 사용 및 스팸 안내 추가
+      showMessage(
+        formMessage,
+        result.message + " 메일이 오지 않으면 스팸함도 확인해주세요.",
+        false
+      );
       step2.style.display = "block";
       sendCodeBtn.disabled = true;
       usernameEmailInput.disabled = true;
-      startTimer(180); // 3분 타이머 시작
+      startTimer(180);
     } else {
       showMessage(formMessage, result.message);
     }
   } catch (error) {
-    console.error("인증번호 전송 오류:", error);
     showMessage(formMessage, "인증번호 전송 중 오류가 발생했습니다.");
   } finally {
-    setButtonLoading(sendCodeBtn, false);
+    // UX 개선: 요청 성공 시에는 버튼 로딩 상태를 풀지 않음 (타이머가 제어)
+    if (!responseOk) {
+      setButtonLoading(sendCodeBtn, false);
+    }
   }
 });
 
@@ -121,7 +133,7 @@ verifyCodeBtn.addEventListener("click", async () => {
   }
 
   setButtonLoading(verifyCodeBtn, true);
-  showMessage(formMessage, "", false);
+  hideMessage(formMessage);
 
   try {
     const response = await fetch("/api/auth/find-password/verify-code", {
@@ -138,19 +150,18 @@ verifyCodeBtn.addEventListener("click", async () => {
       verifyCodeBtn.disabled = true;
       verificationCodeInput.disabled = true;
 
-      // 타이머 중지
       if (timerId) clearInterval(timerId);
       timerElement.style.display = "none";
 
-      // 비밀번호 재설정 단계 보이기
+      step1.style.display = "none";
+      step2.style.display = "none";
       step3.style.display = "block";
-      submitBtn.style.display = "block";
+      submitBtn.style.display = "block"; // 최종 버튼은 submit 타입이므로 form이 제어
       formDescription.textContent = "새로운 비밀번호를 입력해 주세요.";
     } else {
       showMessage(formMessage, result.message);
     }
   } catch (error) {
-    console.error("인증 확인 오류:", error);
     showMessage(formMessage, "인증 확인 중 오류가 발생했습니다.");
   } finally {
     setButtonLoading(verifyCodeBtn, false);
@@ -161,6 +172,9 @@ verifyCodeBtn.addEventListener("click", async () => {
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  // step-3가 보일 때만 이 로직이 실행되도록 함
+  if (step3.style.display !== "block") return;
+
   if (!isEmailVerified) {
     showMessage(formMessage, "이메일 인증을 먼저 완료해주세요.");
     return;
@@ -170,17 +184,21 @@ form.addEventListener("submit", async (e) => {
   const confirmPassword = confirmPasswordInput.value;
 
   if (newPassword !== confirmPassword) {
-    showMessage(formMessage, "비밀번호가 일치하지 않습니다.");
+    // UX 개선: 별도의 password-error 영역에 메시지 표시
+    showMessage(passwordError, "비밀번호가 일치하지 않습니다.");
     return;
+  } else {
+    hideMessage(passwordError);
   }
 
   if (newPassword.length < 8) {
-    showMessage(formMessage, "비밀번호는 8자 이상이어야 합니다.");
+    showMessage(passwordError, "비밀번호는 8자 이상이어야 합니다.");
     return;
   }
 
-  showMessage(formMessage, "", false);
-  setButtonLoading(submitBtn, true);
+  hideMessage(formMessage);
+  // submitBtn은 form의 일부이므로 별도 로딩 처리가 필요하다면 추가
+  // setButtonLoading(submitBtn, true);
 
   try {
     const response = await fetch("/api/auth/reset-password", {
@@ -201,9 +219,11 @@ form.addEventListener("submit", async (e) => {
       showMessage(formMessage, result.message);
     }
   } catch (error) {
-    console.error("비밀번호 재설정 오류:", error);
     showMessage(formMessage, "비밀번호 재설정 중 오류가 발생했습니다.");
   } finally {
-    setButtonLoading(submitBtn, false);
+    // setButtonLoading(submitBtn, false);
   }
 });
+
+// 초기에는 재설정 버튼 숨기기
+submitBtn.style.display = "none";

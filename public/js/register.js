@@ -1,4 +1,4 @@
-// church/public/js/register.js
+// church/public/js/register.js (수정 완료된 버전)
 
 const form = document.getElementById("register-form");
 const emailInput = document.getElementById("email");
@@ -7,7 +7,7 @@ const verificationSection = document.getElementById("verification-section");
 const verificationCodeInput = document.getElementById("verification-code");
 const verifyCodeBtn = document.getElementById("verify-code-btn");
 const registerBtn = document.getElementById("register-btn");
-const timerDisplay = document.getElementById("timer");
+const timerDisplay = document.getElementById("timer"); // 변수명 확인
 const emailError = document.getElementById("email-error");
 const passwordError = document.getElementById("password-error");
 
@@ -17,18 +17,20 @@ let isEmailVerified = false;
 // 타이머 시작 함수
 function startTimer(duration) {
   let timeLeft = duration;
-  timerElement.style.display = "block";
-  timerElement.textContent = `남은 시간: ${formatTime(timeLeft)}`;
+  // BUG FIX: timerElement -> timerDisplay 로 수정
+  timerDisplay.style.display = "block";
+  timerDisplay.textContent = `남은 시간: ${formatTime(timeLeft)}`;
 
   timerId = setInterval(() => {
     timeLeft--;
-    timerElement.textContent = `남은 시간: ${formatTime(timeLeft)}`;
+    timerDisplay.textContent = `남은 시간: ${formatTime(timeLeft)}`;
 
     if (timeLeft <= 0) {
       clearInterval(timerId);
-      timerElement.textContent = "인증 시간이 만료되었습니다. 다시 보내주세요.";
-      sendCodeBtn.disabled = false; // 재전송 버튼 활성화
+      timerDisplay.textContent = "인증 시간이 만료되었습니다. 다시 보내주세요.";
+      sendCodeBtn.disabled = false;
       sendCodeBtn.querySelector(".button-text").textContent = "재전송";
+      emailInput.disabled = false; // 시간이 만료되면 이메일 입력창도 다시 활성화
     }
   }, 1000);
 }
@@ -40,6 +42,7 @@ function formatTime(seconds) {
   return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
 }
 
+// 로딩 상태 처리 함수 (수정 없음)
 function setButtonLoading(button, isLoading) {
   const buttonText = button.querySelector(".button-text");
   const spinner = button.querySelector(".loading-spinner");
@@ -57,11 +60,10 @@ function setButtonLoading(button, isLoading) {
   }
 }
 
-// 에러 메시지를 표시하는 함수
+// 에러 메시지 표시/숨김 함수 (수정 없음)
 function showErrorMessage(element, message) {
   element.textContent = message;
 }
-// 에러 메시지를 숨기는 함수
 function hideErrorMessage(element) {
   element.textContent = "";
 }
@@ -75,6 +77,7 @@ sendCodeBtn.addEventListener("click", async () => {
   }
 
   setButtonLoading(sendCodeBtn, true);
+  hideErrorMessage(emailError); // 이전 에러 메시지 초기화
 
   try {
     const response = await fetch("/api/auth/send-code", {
@@ -84,29 +87,44 @@ sendCodeBtn.addEventListener("click", async () => {
     });
 
     const result = await response.json();
-    alert(result.message);
+
+    // FEATURE: 스팸 메일 안내 문구 추가
+    if (response.ok) {
+      alert(
+        result.message +
+          "\n\n메일이 도착하지 않았다면 스팸 메일함도 확인해주세요."
+      );
+    } else {
+      alert(result.message);
+    }
 
     if (response.ok) {
-      // 인증번호 입력 섹션 보이기
-      hideErrorMessage(emailError);
       verificationSection.style.display = "flex";
-      sendCodeBtn.disabled = true;
       emailInput.disabled = true;
+      // 버튼은 타이머가 만료되면 활성화되므로 여기서 바로 활성화하지 않음
+      sendCodeBtn.querySelector(".button-text").textContent = "인증번호 보내기";
+
+      // 기존 타이머가 있으면 중지
+      if (timerId) clearInterval(timerId); // 3분 (180초) 타이머 시작
+      startTimer(180);
     } else {
       showErrorMessage(emailError, result.message);
     }
-    // 기존 타이머가 있으면 중지
-    if (timerId) clearInterval(timerId);
-    // 서버에서 전달받은 유효 시간으로 타이머 시작 (예: 180초)
-    startTimer(180);
   } catch (error) {
     showErrorMessage(emailError, "인증번호 전송 중 오류가 발생했습니다.");
   } finally {
-    setButtonLoading(sendCodeBtn, false); // 로딩 상태 종료 (성공/실패 무관)
+    // 성공했을 때는 버튼이 계속 비활성화 상태여야 하므로, 실패했을 때만 로딩 상태 해제
+    // response.ok가 아닐 경우에만 로딩을 풀어주도록 수정
+    if (
+      !document.querySelector("#verification-section[style*='display: flex']")
+    ) {
+      setButtonLoading(sendCodeBtn, false);
+    }
   }
 });
 
-// 인증확인 버튼 클릭 이벤트
+// 나머지 코드는 이전과 동일합니다.
+// 인증확인 버튼 클릭 이벤트 (수정 없음)
 verifyCodeBtn.addEventListener("click", async () => {
   const email = emailInput.value;
   const code = verificationCodeInput.value;
@@ -116,7 +134,7 @@ verifyCodeBtn.addEventListener("click", async () => {
     return;
   }
 
-  setButtonLoading(verifyCodeBtn, true); // 로딩 상태 시작
+  setButtonLoading(verifyCodeBtn, true);
 
   try {
     const response = await fetch("/api/auth/verify-code", {
@@ -129,20 +147,22 @@ verifyCodeBtn.addEventListener("click", async () => {
     alert(result.message);
 
     if (response.ok) {
+      clearInterval(timerId); // 인증 성공 시 타이머 중지
+      timerDisplay.style.display = "none";
       isEmailVerified = true;
       verifyCodeBtn.disabled = true;
       verificationCodeInput.disabled = true;
-      registerBtn.disabled = false; // 회원가입 버튼 활성화
+      registerBtn.disabled = false;
     }
   } catch (error) {
     console.error("인증 확인 오류:", error);
     alert("인증 확인 중 오류가 발생했습니다.");
   } finally {
-    setButtonLoading(verifyCodeBtn, false); // 로딩 상태 종료 (성공/실패 무관)
+    setButtonLoading(verifyCodeBtn, false);
   }
 });
 
-// 회원가입 폼 제출 이벤트
+// 회원가입 폼 제출 이벤트 (수정 없음)
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -154,7 +174,6 @@ form.addEventListener("submit", async (e) => {
   const formData = new FormData(form);
   const data = Object.fromEntries(formData.entries());
 
-  // 비밀번호 일치 여부 확인 시
   if (data.password !== data.confirm_password) {
     showErrorMessage(passwordError, "비밀번호가 일치하지 않습니다.");
     return;
@@ -162,9 +181,7 @@ form.addEventListener("submit", async (e) => {
     hideErrorMessage(passwordError);
   }
 
-  // 확인용 비밀번호 필드 삭제
   delete data.confirm_password;
-  // 인증번호 필드도 삭제
   delete data.verification_code;
 
   try {
@@ -180,8 +197,6 @@ form.addEventListener("submit", async (e) => {
       alert(result.message);
       window.location.href = "/login.html";
     } else {
-      // 서버에서 온 상세 오류 메시지 처리
-      // 예를 들어, 'email-error' 또는 'username-error'와 같은 필드별 에러를 서버가 전달한다면
       if (result.field === "email") {
         showErrorMessage(emailError, result.message);
       } else if (result.field === "password") {
