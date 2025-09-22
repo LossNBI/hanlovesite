@@ -1,17 +1,43 @@
 // church/public/js/header.js
 
-// 햄버거 메뉴 기능
-const hamburgerButton = document.querySelector(".hamburger-button");
-const navLinksContainer = document.querySelector(".nav-links-container");
+document.addEventListener("DOMContentLoaded", () => {
+  const hamburgerButton = document.querySelector(".hamburger-button");
+  const navLinksContainer = document.querySelector(".nav-links-container");
+  const navLinks = document.querySelector(".nav-links");
+  const hasSubmenus = document.querySelectorAll(".has-submenu > a");
 
-if (hamburgerButton && navLinksContainer) {
+  // 햄버거 버튼 클릭 이벤트 (메인 메뉴 토글)
   hamburgerButton.addEventListener("click", () => {
-    const expanded =
-      hamburgerButton.getAttribute("aria-expanded") === "true" || false;
-    hamburgerButton.setAttribute("aria-expanded", !expanded);
     navLinksContainer.classList.toggle("active");
+    const expanded = navLinksContainer.classList.contains("active");
+    hamburgerButton.setAttribute("aria-expanded", expanded);
   });
-}
+
+  // 모바일 환경에서 하위 메뉴 토글 (클릭 이벤트)
+  hasSubmenus.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      // 데스크톱에서는 기본 링크 이동을 허용
+      if (window.innerWidth >= 769) {
+        return;
+      }
+
+      event.preventDefault(); // 기본 링크 이동 막기
+
+      const parentLi = link.parentElement;
+      const subMenu = parentLi.querySelector(".sub-menu");
+
+      // 다른 하위 메뉴 닫기
+      document.querySelectorAll(".has-submenu").forEach((otherLi) => {
+        if (otherLi !== parentLi) {
+          otherLi.classList.remove("active");
+        }
+      });
+
+      // 현재 하위 메뉴 토글
+      parentLi.classList.toggle("active");
+    });
+  });
+});
 
 // 로그인 상태에 따라 헤더 아이콘을 변경하는 함수
 async function updateHeaderIcons() {

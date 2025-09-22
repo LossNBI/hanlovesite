@@ -159,6 +159,41 @@ body {
 
 /* --- 컴퓨터 환경 (769px 이상) --- */
 @media (min-width: 769px) {
+  /* 상위 메뉴 항목에 position: relative를 추가하여 하위 메뉴의 위치 기준이 되게 함 */
+  .nav-links > li {
+    position: relative;
+  }
+
+  /* 하위 메뉴를 기본적으로 숨김 */
+  .nav-links .sub-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    /* 드롭다운 메뉴 스타일링 */
+    background-color: rgba(43, 122, 240, 0.95);
+    min-width: 150px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 하위 메뉴 항목 스타일 */
+  .nav-links .sub-menu li {
+    text-align: left;
+  }
+
+  .nav-links .sub-menu li a {
+    padding: 12px 16px;
+    display: block;
+  }
+
+  /* 상위 메뉴에 마우스를 올렸을 때 하위 메뉴를 보이게 함 */
+  .nav-links > li:hover > .sub-menu {
+    display: block;
+  }
+
   /* 상단바 정렬 */
   .navbar {
     justify-content: space-between; /* 로고는 왼쪽, 메뉴는 오른쪽으로 정렬 */
@@ -201,6 +236,24 @@ body {
   /* 로그인 아이콘 위치 조정 */
   .login-icon {
     margin-left: 0;
+  }
+}
+
+/* --- 모바일 환경 (768px 이하) --- */
+@media (max-width: 768px) {
+  /* ... 기존 코드 유지 ... */
+
+  /* 모바일에서 하위 메뉴를 기본적으로 숨김 */
+  .nav-links .sub-menu {
+    display: none;
+    /* 모바일 하위 메뉴 스타일 */
+    background-color: rgba(43, 122, 240, 0.8);
+    padding-left: 10px; /* 들여쓰기 효과 */
+  }
+
+  /* '.has-submenu'에 '.active' 클래스가 있을 때 하위 메뉴를 보이게 함 */
+  .has-submenu.active .sub-menu {
+    display: block;
   }
 }
 
